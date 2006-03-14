@@ -91,6 +91,8 @@ GetVRAMInfo(ScrnInfoPtr pScrn)
    ASTRecPtr pAST = ASTPTR(pScrn);
    UCHAR jReg;
 
+   vASTOpenKey(pScrn);
+
    GetIndexRegMask(CRTC_PORT, 0xAA, 0xFF, jReg);  
 
    switch (jReg & 0x03)
@@ -209,6 +211,8 @@ ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int fla
 
    pAST = ASTPTR(pScrn);
    SEQ01=CRB6=0;
+   
+   vASTOpenKey(pScrn);
    
    switch (PowerManagementMode) {
    case DPMSModeOn:
