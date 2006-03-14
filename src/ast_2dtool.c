@@ -64,11 +64,12 @@ void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 void vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST);    
 UCHAR *pjRequestCMDQ(ASTRecPtr pAST, ULONG   ulDataLen);
 Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam);
-LONG lGetDiaRg(LONG GFracX, LONG GFracY);
 
 Bool
 bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
+
+    ScreenPtr pScreen;
 
     pAST->CMDQInfo.pjCmdQBasePort    = pAST->MMIOVirtualAddr+ 0x8044; 
     pAST->CMDQInfo.pjWritePort       = pAST->MMIOVirtualAddr+ 0x8048;
@@ -78,23 +79,35 @@ bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     /* CMDQ mode Init */
     if (!pAST->MMIO2D) {
         pAST->CMDQInfo.ulCMDQType = VM_CMD_QUEUE;	
-
-        ScreenPtr pScreen;
        
         pScreen = screenInfo.screens[pScrn->scrnIndex];
       
-        pAST->pCMDQPtr = xf86AllocateOffscreenLinear (pScreen, 1024*1024, 8, NULL, NULL, NULL);
-      
-        if (!pAST->pCMDQPtr) {   		  
+        do {
+            pAST->pCMDQPtr = xf86AllocateOffscreenLinear (pScreen, pAST->CMDQInfo.ulCMDQSize, 8, NULL, NULL, NULL);
+            
+            if (pAST->pCMDQPtr) break;
+            
+            pAST->CMDQInfo.ulCMDQSize >>= 1;
+            
+        } while (pAST->CMDQInfo.ulCMDQSize >= MIN_CMDQ_SIZE);
+        
+        if (pAST->pCMDQPtr)
+        {
+           xf86DrvMsg(pScrn->scrnIndex, X_INFO,"Allocate CMDQ size is %ld kbyte \n", (unsigned long) (pAST->CMDQInfo.ulCMDQSize/1024));
+        	
+           pAST->CMDQInfo.ulCMDQOffsetAddr  = pAST->pCMDQPtr->offset*((pScrn->bitsPerPixel + 1) / 8);
+           pAST->CMDQInfo.pjCMDQVirtualAddr = pAST->FBVirtualAddr + pAST->CMDQInfo.ulCMDQOffsetAddr;
+           						 
+           pAST->CMDQInfo.ulCurCMDQueueLen = pAST->CMDQInfo.ulCMDQSize - CMD_QUEUE_GUARD_BAND;
+           pAST->CMDQInfo.ulCMDQMask = pAST->CMDQInfo.ulCMDQSize - 1 ; 
+        	
+        }	
+        else
+        {   		  
            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,"Allocate CMDQ failed \n");
            pAST->MMIO2D = TRUE;		/* set to MMIO mode if CMDQ allocate failed */
         }	
         						  
-        pAST->CMDQInfo.ulCMDQOffsetAddr  = pAST->pCMDQPtr->offset*((pScrn->bitsPerPixel + 1) / 8);
-        pAST->CMDQInfo.pjCMDQVirtualAddr = pAST->FBVirtualAddr + pAST->CMDQInfo.ulCMDQOffsetAddr;
-           						 
-        pAST->CMDQInfo.ulCurCMDQueueLen = pAST->CMDQInfo.ulCMDQSize - CMD_QUEUE_GUARD_BAND;
-        pAST->CMDQInfo.ulCMDQMask = pAST->CMDQInfo.ulCMDQSize - 1 ; 
     }
     
     /* MMIO mode init */  
@@ -348,16 +361,9 @@ ASTRecPtr pAST, ULONG   ulDataLen)
 Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
 {
     LONG GAbsX, GAbsY, GXInc, GYInc, GSlopeOne, GXMajor;
-    Bool tmpFlipH=0, tmpFlipV=0, tmpFlipD=0;
-    LONG tmpStartX, tmpStartY, tmpFStartX, tmpFStartY;
-    LONG GFAbsX, GFAbsY, GFStartX, GFStartY, GFFracX[2], GFFracY[2];  
-    LONG flag, GXRoundDown, GYRoundDown, GFlipH, GFlipV, GFlipD;
-    LONG tmpx, tmpy, GFGamma;
-    LONG i, region, tmpDiaRg[2], tmpGFX1, GFAdd, GNTWidth;           	
-    LONG tmp1GFX, tmp1GFY, tmp2GFX, tmp2GFY, tmpGK1Term, tmpGK2Term, tmpGNTErr;
-    LONG GFX, GFY, GK1Term, GK2Term, GNTErr;
+    LONG MM, mm, Error0, K1, K2;
             	
-    /*Init Calucate */
+    /* Init */
 #ifdef LONG64    
     GAbsX = abs (LineInfo->X1 - LineInfo->X2);
     GAbsY = abs (LineInfo->Y1 - LineInfo->Y2);
@@ -371,173 +377,30 @@ Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
     GSlopeOne = (GAbsX ==GAbsY) ? 1:0;
     GXMajor = (GAbsX >= GAbsY) ? 1:0;
    
-    /*Flip */
-    tmpStartX = LineInfo->X1;
-    tmpStartY = LineInfo->Y1;
-    if (!GXInc)
+    /* Calculate */
+    if (GXMajor)
     {
-        tmpStartX = ~LineInfo->X1+ 1;
-        tmpFlipH = 1;	
-    }
-    
-    if (!GYInc)
-    {
-        tmpStartY = ~LineInfo->Y1 + 1;
-        tmpFlipV = 1;	
-    }
-    
-    if (GXMajor ==0)
-    {
-    	tmpFlipD = 1;
-    	tmpFStartX = tmpStartY;
-    	tmpFStartY = tmpStartX;
-    	GFAbsX = GAbsY;
-    	GFAbsY = GAbsX;
+        MM = GAbsX;
+        mm = GAbsY;	        	
     }
     else
     {
-    	tmpFlipD = 0;
-    	tmpFStartX = tmpStartX;
-    	tmpFStartY = tmpStartY;
-    	GFAbsX = GAbsX;
-    	GFAbsY = GAbsY;    	
-    }
-        
-    GFStartX = tmpFStartX >> 4;
-    GFStartY = tmpFStartY >> 4;
-    GFFracX[0] = tmpFStartX & 0xF;
-    GFFracY[0] = tmpFStartY & 0xF;
-  
-    /* Flag = GSlopeOne & tmpFlipH & tmpFlipV & tmpFlipD */
-    flag = (GSlopeOne<<3) + (tmpFlipH<<2) + (tmpFlipV<<1) + tmpFlipD;
-    switch(flag)			/*  GSlopeOne tmpFlipH tmpFlipV tmpFlipD */
-    {
-    case 0:				/*  0           0        0        0 */
-    case 1: 				/*  0           0        0        1 */
-        GXRoundDown = 1;	        
- 	GYRoundDown = 1;
-	GFlipH = tmpFlipH;
-	GFlipV = tmpFlipV;
-	GFlipD = tmpFlipD;
-	break;
-    case 2:				/*  0           0        1        0 */
-    case 5:				/*  0           1        0        1 */
-    case 10:			        /*  1           0        1        0 */
-    case 14:				/*  1           1        1        0 */
-         GXRoundDown = 1;	        
- 	 GYRoundDown = 0;
-	 GFlipH = tmpFlipH;
-	 GFlipV = tmpFlipV;
-	 GFlipD = tmpFlipD;
-	 break;
-    case 3:				/*  0           0        1        1 */
-    case 4:				/*  0           1        0        0 */
-    case 8:				/*  1           0        0        0 */
-    case 12:                            /*  1           1        0        0 */
-        GXRoundDown = 0;	        
-	GYRoundDown = 1;
-	GFlipH = tmpFlipH;
-	GFlipV = tmpFlipV;
-	GFlipD = tmpFlipD;
-	break;
-    case 6:				/*  0           1        1        0 */
-    case 7:				/*  0           1        1        1 */
-        GXRoundDown = 0;	        
-	GYRoundDown = 0;
-	GFlipH = tmpFlipH;
-	GFlipV = tmpFlipV;
-	GFlipD = tmpFlipD;
-	break;
-    /* case 9, 11, 13, 15 */
-    default:
-        GXRoundDown = 1;		/*  1           0        0        1 */
-	GYRoundDown = 1;		/*  1           0        1        1 */
-	GFlipH = 1;			/*  1           1        0        1 */
-	GFlipV = 1;			/*  1           1        1        1 */
-	GFlipD = 1;
-    }
-	      
-    /*Err */
-    tmpx = (GFFracY[0] +8) * GFAbsX;
-    tmpy =  GFFracX[0]    * GFAbsY;
-    if(GYRoundDown==1)
-	GFGamma=(signed)(tmpx - tmpy - 1) >> 4;
-    else
-	GFGamma=(signed)(tmpx - tmpy) >> 4;
-    
-    /*GIQ */
-    GFFracX[1] = (GFFracX[0] + GFAbsX) & 0xF;
-    GFFracY[1] = (GFFracY[0] + GFAbsY) & 0xF;
-
-    for (i=0; i<2; i++)
-    {
-    	tmpDiaRg[i] = 0;
-        region = lGetDiaRg(GFFracX[i], GFFracY[i]);
-
-        if(region==1 && GXRoundDown==0)
-    	    tmpDiaRg[i] |= 1;
-      
-        if(region==2 && (GSlopeOne==0 || GXRoundDown==0))
-    	    tmpDiaRg[i] |= 1;
-    
-        if(region==3)
-    	    tmpDiaRg[i] |= 1;
- 
-    }
-    
-    tmpGFX1  =((signed)(GFFracX[0]+GFAbsX)>>4)-1+tmpDiaRg[1];   /* signed left shifter!! */
-    GFAdd    = tmpDiaRg[0];
-    GNTWidth = tmpGFX1 - tmpDiaRg[0] + 1;
-   
-    /* FXY	 */
-    tmpGK1Term = GFAbsY;
-    tmpGK2Term = GFAbsY - GFAbsX;
-
-    if(GFAdd==1){
-	tmpGNTErr = GFGamma - GFAbsX + GFAbsY;
-    }else{
-	tmpGNTErr = GFGamma - GFAbsX;
+        MM = GAbsY;
+        mm = GAbsX;	        	    	
     }
 
-    tmp1GFX = GFStartX + GFAdd;
-    if((signed)tmpGNTErr >= 0){
-	tmp1GFY = GFStartY+1;
-	GNTErr = tmpGNTErr + tmpGK2Term;
-    }else{
-	tmp1GFY = GFStartY;
-	GNTErr = tmpGNTErr + tmpGK1Term;
-    }
-
-    if(GFlipD == 1){
-	tmp2GFX = tmp1GFY;
-	tmp2GFY = tmp1GFX;
-    }else{
-	tmp2GFX = tmp1GFX;
-	tmp2GFY = tmp1GFY;
-    }
-
-    if(GFlipV == 1){
-	GFY = ~tmp2GFY+1;
-    }else{
-	GFY = tmp2GFY;
-    }
-
-    if(GFlipH == 1){
-	GFX = ~tmp2GFX+1;
-    }else{
-	GFX = tmp2GFX;
-    }
-
-    GK1Term = tmpGK1Term;
-    GK2Term = tmpGK2Term;    
+    Error0 = (signed) (2*mm - MM);
+    	
+    K1 = 2* mm;
+    K2 = (signed) (2*mm - 2*MM);
     
     /*save the Param to dsLineParam */
-    dsLineParam->dsLineX = (USHORT) GFX;
-    dsLineParam->dsLineY = (USHORT) GFY;
-    dsLineParam->dsLineWidth = (USHORT) GNTWidth;
-    dsLineParam->dwErrorTerm = (ULONG) GNTErr;
-    dsLineParam->dwK1Term = GK1Term;
-    dsLineParam->dwK2Term = GK2Term;
+    dsLineParam->dsLineX = (USHORT) LineInfo->X1;
+    dsLineParam->dsLineY = (USHORT) LineInfo->Y1;
+    dsLineParam->dsLineWidth = (USHORT) MM;
+    dsLineParam->dwErrorTerm = (ULONG) Error0;
+    dsLineParam->dwK1Term = K1;
+    dsLineParam->dwK2Term = K2;
 
     dsLineParam->dwLineAttributes = 0;
     if (GXMajor) dsLineParam->dwLineAttributes |= LINEPARAM_XM;
@@ -546,248 +409,6 @@ Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
     
     return(TRUE);
     
-}
-
-LONG lGetDiaRg(LONG GFracX, LONG GFracY)
-{
-    LONG region;
-    
-	switch(GFracY)
-	{
-	case 0x0: 
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		case 0x5:
-		case 0x6:
-		case 0x7:
-		   region=0;
-		   break;
-		case 0x8:
-		   region=1;
-		   break;
-		default:
-		   region=3;
-	    }
-	    break;
-	case 0x1:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		case 0x5:
-		case 0x6:
-		    region=0;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x2:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		case 0x5:
-		    region=0; break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x3:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		    region=0;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x4:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		    region=0;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x5:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		    region=0; break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x6:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		    region=0;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x7:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		    region=0;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x8:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		    region=0;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0x9: 
-	    switch(GFracX)
-	    {
-		case 0x0:
-		    region=0; 
-		    break;
-		case 0x1:
-		    region=2;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0xa:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		    region=0;
-		    break;
-		case 0x2:
-		    region=2;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0xb:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		    region=0;
-		    break;
-		case 0x3: 
-		    region=2;
-		    break;
-		default:                                  
-		    region=3;
-	    }
-	    break;
-	case 0xc:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		    region=0;
-		    break;
-		case 0x4:
-		    region=2;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0xd:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		    region=0;
-		    break;
-		case 0x5:
-		    region=2;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	case 0xe:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		case 0x5:
-		    region=0;
-		    break;
-		case 0x6:
-		    region=2;
-		    break;
-		default:
-		    region=3;
-	    }
-	    break;
-	default:
-	    switch(GFracX)
-	    {
-		case 0x0:
-		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		case 0x5:
-		case 0x6:
-		    region=0;
-		    break;
-		case 0x7:
-		    region=2;
-		    break;
-		default: 
-		    region=3;
-	    }
-	}
-
-    return (region);	
-
 }
 
 #endif	/* end of Accel_2D */

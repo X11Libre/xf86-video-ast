@@ -63,6 +63,7 @@ extern void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 extern void vASTOpenKey(ScrnInfoPtr pScrn);
 extern Bool bASTRegInit(ScrnInfoPtr pScrn);
 extern ULONG GetVRAMInfo(ScrnInfoPtr pScrn);
+extern ULONG GetMaxDCLK(ScrnInfoPtr pScrn);
 extern void vASTLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices, LOCO *colors, VisualPtr pVisual);
 extern void ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags);
 extern void vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
@@ -133,7 +134,7 @@ typedef enum {
    OPTION_HWC_NUM,
    OPTION_ENG_CAPS,   
    OPTION_DBG_SELECT,
-   OPTION_NO_DDC,
+   OPTION_NO_DDC
 } ASTOpts;
 
 static const OptionInfoRec ASTOptions[] = {
@@ -610,6 +611,20 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pAST->FbMapSize = pScrn->videoRam * 1024;
    pAST->MMIOMapSize = DEFAULT_MMIO_SIZE;
 
+   /* Map resource */
+   if (!ASTMapMem(pScrn)) {
+      xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Map FB Memory Failed \n");      	
+      return FALSE;
+   }
+   
+   if (!ASTMapMMIO(pScrn)) {
+      xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Map Memory Map IO Failed \n");      	
+      return FALSE;
+   }
+
+   pScrn->memPhysBase = (ULONG)pAST->FBPhysAddr;
+   pScrn->fbOffset = 0;
+
    /* Do DDC 
     * should be done after xf86CollectOptions
     */
@@ -619,11 +634,11 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    clockRanges = xnfcalloc(sizeof(ClockRange), 1);
    clockRanges->next = NULL;
    clockRanges->minClock = 9500;
-   clockRanges->maxClock = 165000;
+   clockRanges->maxClock = GetMaxDCLK(pScrn) * 1000;   
    clockRanges->clockIndex = -1;
    clockRanges->interlaceAllowed = FALSE;
    clockRanges->doubleScanAllowed = FALSE;
-
+   
    i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
 			 pScrn->display->modes, clockRanges,
 			 0, 320, 1600, 8 * pScrn->bitsPerPixel,
@@ -732,21 +747,7 @@ ASTScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
    pScrn = xf86Screens[pScreen->myNum];
    pAST = ASTPTR(pScrn);
    hwp = VGAHWPTR(pScrn);
-
       
-   if (!ASTMapMem(pScrn)) {
-      xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Map FB Memory Failed \n");      	
-      return FALSE;
-   }
-   
-   if (!ASTMapMMIO(pScrn)) {
-      xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Map Memory Map IO Failed \n");      	
-      return FALSE;
-   }
-
-   pScrn->memPhysBase = (ULONG)pAST->FBPhysAddr;
-   pScrn->fbOffset = 0;
-
 /*   if (!pAST->noAccel) */
    {
        /* AvailFBSize = pAST->FbMapSize - pAST->CMDQInfo.ulCMDQSize; */

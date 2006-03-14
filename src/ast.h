@@ -38,7 +38,7 @@
 #define AST_NAME 			"AST1000/2000"
 #define AST_DRIVER_NAME 		"ast"
 #define AST_MAJOR_VERSION 		0
-#define AST_MINOR_VERSION 		62
+#define AST_MINOR_VERSION 		80
 #define AST_PATCH_VERSION		0
 #define AST_VERSION	\
         ((AST_MAJOR_VERSION << 20) | (AST_MINOR_VERSION << 10) | AST_PATCH_VERSION)
@@ -47,6 +47,7 @@
 #define DEFAULT_VIDEOMEM_SIZE		0x00800000
 #define DEFAULT_MMIO_SIZE		0x00020000
 #define DEFAULT_CMDQ_SIZE		0x00100000
+#define MIN_CMDQ_SIZE			0x00040000
 #define CMD_QUEUE_GUARD_BAND    	0x00000020
 #define DEFAULT_HWC_NUM			0x00000002
 
@@ -148,7 +149,7 @@ typedef struct _ASTRec {
     IOADDRESS		IODBase;        	/* Base of PIO memory area */
     IOADDRESS		PIOOffset;
     IOADDRESS		RelocateIO;
-     
+    
     VIDEOMODE 		VideoModeInfo;
     ASTRegRec           SavedReg;
     CMDQINFO		CMDQInfo;

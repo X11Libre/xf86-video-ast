@@ -100,7 +100,6 @@ int ASTXAAPatternROP[16]=
 extern void vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern UCHAR *pjRequestCMDQ(ASTRecPtr pAST, ULONG ulDataLen);
 extern Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam);
-extern LONG lGetDiaRg(LONG GFracX, LONG GFracY);
 
 /* Prototype type declaration */
 Bool ASTAccelInit(ScreenPtr pScreen);
@@ -667,11 +666,6 @@ static void ASTSubsequentSolidTwoPointLine(ScrnInfoPtr pScrn,
         y2 -= miny;
     }
           
-    LineInfo.X1 = x1 << 4;
-    LineInfo.X2 = x2 << 4;
-    LineInfo.Y1 = y1 << 4;
-    LineInfo.Y2 = y2 << 4;
-              	
     bGetLineTerm(&LineInfo, &dsLineParam);		/* Get Line Parameter */
     
     if (dsLineParam.dwLineAttributes & LINEPARAM_X_DEC) 
@@ -822,11 +816,6 @@ ASTSubsequentDashedTwoPointLine(ScrnInfoPtr pScrn,
         y2 -= miny;
     }
      
-    LineInfo.X1 = x1 << 4;
-    LineInfo.X2 = x2 << 4;
-    LineInfo.Y1 = y1 << 4;
-    LineInfo.Y2 = y2 << 4;
-              	
     bGetLineTerm(&LineInfo, &dsLineParam);		/* Get Line Parameter */
     
     if (dsLineParam.dwLineAttributes & LINEPARAM_X_DEC) 

@@ -1,6 +1,19 @@
 2006-03-14  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* src/ast.h:
+	* src/ast_2dtool.c:
+	* src/ast_2dtool.h:
+	* src/ast_accel.c:
+	* src/ast_driver.c:
+	* src/ast_vgatool.c:
+	Version 0.80 from ASPEED Technology Inc.
+	(Fixed get video buffer size incorrect issue)
+	Bugzilla #4937 <https://bugs.freedesktop.org/show_bug.cgi?id=4937>
+	Attachment #4932 <https://bugs.freedesktop.org/attachment.cgi?id=4932>
+
+2006-03-14  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* src/ast.h:
 	* src/ast_driver.c:
 	* src/ast_vgatool.c:
 	Version 0.62 from ASPEED Technology Inc.
