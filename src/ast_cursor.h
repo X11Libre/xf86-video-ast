@@ -28,3 +28,12 @@
 
 #define HWC_MONO		0
 #define HWC_COLOR		1
+
+/* define for signature structure */
+#define HWC_SIGNATURE_CHECKSUM	0x00
+#define HWC_SIGNATURE_SizeX     0x04
+#define HWC_SIGNATURE_SizeY     0x08
+#define HWC_SIGNATURE_X         0x0C
+#define HWC_SIGNATURE_Y         0x10
+#define HWC_SIGNATURE_HOTSPOTX  0x14
+#define HWC_SIGNATURE_HOTSPOTY  0x18

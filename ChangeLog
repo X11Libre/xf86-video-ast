@@ -1,6 +1,16 @@
 2006-03-14  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* src/ast.h:
+	* src/ast_cursor.c:
+	* src/ast_cursor.h:
+	Version 0.60 from ASPEED Technology Inc.
+	(Modify H/W cursor parts for customer request)
+	Bugzilla #4937 <https://bugs.freedesktop.org/show_bug.cgi?id=4937>
+	Attachment #4044 <https://bugs.freedesktop.org/attachment.cgi?id=4044>
+
+2006-03-14  Alan Coopersmith  <alan.coopersmith@sun.com>	
+
+	* src/ast.h:
 	* src/ast_2dtool.c:
 	* src/ast_2dtool.h:
 	* src/ast_accel.c:
@@ -12,6 +22,6 @@
 	* src/ast_tool.c:
 	* src/ast_vgatool.c:
 	* src/ast_vgatool.h:
-	Initial code release from ASPEED Technology Inc.
+	Initial code release from ASPEED Technology Inc. (Version 0.51)
 	Bugzilla #4937 <https://bugs.freedesktop.org/show_bug.cgi?id=4937>
-	Attachment 3686 <https://bugs.freedesktop.org/attachment.cgi?id=3686>
+	Attachment #3686 <https://bugs.freedesktop.org/attachment.cgi?id=3686>
