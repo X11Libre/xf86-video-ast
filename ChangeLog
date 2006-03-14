@@ -1,0 +1,17 @@
+2006-03-14  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* src/ast.h:
+	* src/ast_2dtool.c:
+	* src/ast_2dtool.h:
+	* src/ast_accel.c:
+	* src/ast_cursor.c:
+	* src/ast_cursor.h:
+	* src/ast_driver.c:
+	* src/ast_mode.c:
+	* src/ast_mode.h:
+	* src/ast_tool.c:
+	* src/ast_vgatool.c:
+	* src/ast_vgatool.h:
+	Initial code release from ASPEED Technology Inc.
+	Bugzilla #4937 <https://bugs.freedesktop.org/show_bug.cgi?id=4937>
+	Attachment 3686 <https://bugs.freedesktop.org/attachment.cgi?id=3686>
