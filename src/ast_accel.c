@@ -55,6 +55,46 @@
 #include "ast.h"
 
 #ifdef	Accel_2D
+/* ROP Translation Table */
+int ASTXAACopyROP[16] =
+{
+   ROP_0,               /* GXclear */
+   ROP_DSa,             /* GXand */
+   ROP_SDna,            /* GXandReverse */
+   ROP_S,               /* GXcopy */
+   ROP_DSna,            /* GXandInverted */
+   ROP_D,               /* GXnoop */
+   ROP_DSx,             /* GXxor */
+   ROP_DSo,             /* GXor */
+   ROP_DSon,            /* GXnor */
+   ROP_DSxn,            /* GXequiv */
+   ROP_Dn,              /* GXinvert*/
+   ROP_SDno,            /* GXorReverse */
+   ROP_Sn,              /* GXcopyInverted */
+   ROP_DSno,            /* GXorInverted */
+   ROP_DSan,            /* GXnand */
+   ROP_1                /* GXset */
+};
+
+int ASTXAAPatternROP[16]=
+{
+   ROP_0,
+   ROP_DPa,
+   ROP_PDna,
+   ROP_P,
+   ROP_DPna,
+   ROP_D,
+   ROP_DPx,
+   ROP_DPo,
+   ROP_DPon,
+   ROP_PDxn,
+   ROP_Dn,
+   ROP_PDno,
+   ROP_Pn,
+   ROP_DPno,
+   ROP_DPan,
+   ROP_1
+};
 
 /* extern function */
 extern void vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST);
@@ -265,7 +305,7 @@ static void ASTSetupForScreenToScreenCopy(ScrnInfoPtr pScrn,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAACopyROP[rop] << 8);
+    cmdreg |= (ASTXAACopyROP[rop] << 8);
     pAST->ulCMDReg = cmdreg;
      
     if (!pAST->MMIO2D)
@@ -403,7 +443,7 @@ ASTSetupForSolidFill(ScrnInfoPtr pScrn,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAAPatternROP[rop] << 8);
+    cmdreg |= (ASTXAAPatternROP[rop] << 8);
     pAST->ulCMDReg = cmdreg;
             
     if (!pAST->MMIO2D)                    
@@ -505,7 +545,7 @@ static void ASTSetupForSolidLine(ScrnInfoPtr pScrn,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAAPatternROP[rop] << 8);  
+    cmdreg |= (ASTXAAPatternROP[rop] << 8);  
     pAST->ulCMDReg = cmdreg;
      
     if (!pAST->MMIO2D)
@@ -711,7 +751,7 @@ ASTSetupForDashedLine(ScrnInfoPtr pScrn,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAAPatternROP[rop] << 8);  
+    cmdreg |= (ASTXAAPatternROP[rop] << 8);  
     if(bg == -1) {
         cmdreg |= CMD_TRANSPARENT;    
         bg = 0;
@@ -865,7 +905,7 @@ ASTSetupForMonoPatternFill(ScrnInfoPtr pScrn,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAAPatternROP[rop] << 8);
+    cmdreg |= (ASTXAAPatternROP[rop] << 8);
     pAST->ulCMDReg = cmdreg;
             
     if (!pAST->MMIO2D)                    
@@ -978,7 +1018,7 @@ ASTSetupForColor8x8PatternFill(ScrnInfoPtr pScrn, int patx, int paty,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAAPatternROP[rop] << 8);
+    cmdreg |= (ASTXAAPatternROP[rop] << 8);
     pAST->ulCMDReg = cmdreg;
     cpp = (pScrn->bitsPerPixel + 1) / 8;
     pataddr = (CARD32 *)(pAST->FBVirtualAddr +
@@ -1097,7 +1137,7 @@ ASTSetupForCPUToScreenColorExpandFill(ScrnInfoPtr pScrn,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAAPatternROP[rop] << 8);
+    cmdreg |= (ASTXAAPatternROP[rop] << 8);
     if(bg == -1) {
         cmdreg |= CMD_FONT_TRANSPARENT;    
         bg = 0;
@@ -1219,7 +1259,7 @@ ASTSetupForScreenToScreenColorExpandFill(ScrnInfoPtr pScrn,
         cmdreg |= CMD_COLOR_32;
         break;    	
     }
-    cmdreg |= (XAAPatternROP[rop] << 8);
+    cmdreg |= (ASTXAAPatternROP[rop] << 8);
     if(bg == -1) {
         cmdreg |= CMD_FONT_TRANSPARENT;    
         bg = 0;

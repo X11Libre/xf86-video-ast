@@ -296,7 +296,7 @@ astSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 static void
 ASTIdentify(int flags)
 {
-   xf86PrintChipsets(AST_NAME, "Driver for AST Graphics Chipsets",
+   xf86PrintChipsets(AST_NAME, "Driver for ASPEED Graphics Chipsets",
 		     ASTChipsets);
 }
 
