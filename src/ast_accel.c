@@ -668,6 +668,11 @@ static void ASTSubsequentSolidTwoPointLine(ScrnInfoPtr pScrn,
         y1 -= miny;
         y2 -= miny;
     }
+    
+    LineInfo.X1 = x1;
+    LineInfo.Y1 = y1;
+    LineInfo.X2 = x2;
+    LineInfo.Y2 = y2;
           
     bGetLineTerm(&LineInfo, &dsLineParam);		/* Get Line Parameter */
     
@@ -818,7 +823,12 @@ ASTSubsequentDashedTwoPointLine(ScrnInfoPtr pScrn,
         y1 -= miny;
         y2 -= miny;
     }
-     
+
+    LineInfo.X1 = x1;
+    LineInfo.Y1 = y1;
+    LineInfo.X2 = x2;
+    LineInfo.Y2 = y2;
+               
     bGetLineTerm(&LineInfo, &dsLineParam);		/* Get Line Parameter */
     
     if (dsLineParam.dwLineAttributes & LINEPARAM_X_DEC) 

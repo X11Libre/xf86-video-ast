@@ -363,7 +363,7 @@ ASTRecPtr pAST, ULONG   ulDataLen)
 
 Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
 {
-    LONG GAbsX, GAbsY, GXInc, GYInc, GSlopeOne, GXMajor;
+    LONG GAbsX, GAbsY, GXInc, GYInc, GXMajor;
     LONG MM, mm, Error0, K1, K2;
             	
     /* Init */
@@ -377,7 +377,6 @@ Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
 
     GXInc = (LineInfo->X1 < LineInfo->X2) ? 1:0;
     GYInc = (LineInfo->Y1 < LineInfo->Y2) ? 1:0;
-    GSlopeOne = (GAbsX ==GAbsY) ? 1:0;
     GXMajor = (GAbsX >= GAbsY) ? 1:0;
    
     /* Calculate */
@@ -413,7 +412,6 @@ Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
     return(TRUE);
     
 }
-
 #endif	/* end of Accel_2D */
 
 

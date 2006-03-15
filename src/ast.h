@@ -35,7 +35,7 @@
 #endif
 
 /* AST REC Info */
-#define AST_NAME 			"AST1000/2000"
+#define AST_NAME 			"AST"
 #define AST_DRIVER_NAME 		"ast"
 #define AST_MAJOR_VERSION 		0
 #define AST_MINOR_VERSION 		80
