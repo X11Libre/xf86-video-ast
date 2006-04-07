@@ -1,3 +1,16 @@
+2006-04-07  Adam Jackson  <ajax@freedesktop.org>
+
+	* configure.ac:
+	* src/ast.h:
+	* src/ast_2dtool.c:
+	* src/ast_accel.c:
+	* src/ast_cursor.c:
+	* src/ast_driver.c:
+	* src/ast_mode.c:
+	* src/ast_tool.c:
+	* src/ast_vgatool.c:
+	Unlibcwrap.  Bump server version requirement.  Bump to 0.81.0.
+
 2006-03-15  Alan Coopersmith  <alan.coopersmith@sun.com>
 
 	* src/ast.h: 

@@ -20,6 +20,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <string.h>
+#include <stdlib.h>
+
 /* Compiler Options */
 #define	Accel_2D
 /* #define MMIO_2D */
@@ -38,7 +41,7 @@
 #define AST_NAME 			"AST"
 #define AST_DRIVER_NAME 		"ast"
 #define AST_MAJOR_VERSION 		0
-#define AST_MINOR_VERSION 		80
+#define AST_MINOR_VERSION 		81
 #define AST_PATCH_VERSION		0
 #define AST_VERSION	\
         ((AST_MAJOR_VERSION << 20) | (AST_MINOR_VERSION << 10) | AST_PATCH_VERSION)
