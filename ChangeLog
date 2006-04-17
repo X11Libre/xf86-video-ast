@@ -1,3 +1,8 @@
+2006-04-17  Y.C. Chen  <yc_chen@aspeedtech.com>
+
+	* src/ast_vgatool.c: (GetMaxDCLK):
+        Fixed can't get correct MCLK in some platforms     
+
 2006-04-07  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
