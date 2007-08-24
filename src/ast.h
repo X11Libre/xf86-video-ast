@@ -27,6 +27,7 @@
 #define	Accel_2D
 /* #define MMIO_2D */
 #define HWC
+/* #define PATCH_ABI_VERSION */
 
 /* Vendor & Device Info */
 #ifndef PCI_VENDOR_AST
@@ -36,6 +37,12 @@
 #ifndef	PCI_CHIP_AST2000
 #define PCI_CHIP_AST2000		0x2000		
 #endif
+
+typedef enum _CHIP_ID {
+    VGALegacy,
+    AST2000,
+    AST2100	
+} CHIP_ID;
 
 /* AST REC Info */
 #define AST_NAME 			"AST"
@@ -53,6 +60,9 @@
 #define MIN_CMDQ_SIZE			0x00040000
 #define CMD_QUEUE_GUARD_BAND    	0x00000020
 #define DEFAULT_HWC_NUM			0x00000002
+
+/* Patch Info */
+#define ABI_VIDEODRV_VERSION_PATCH	SET_ABI_VERSION(0, 5)
 
 /* Data Type Definition */
 typedef INT32  		LONG;
@@ -132,6 +142,8 @@ typedef struct _ASTRec {
 
     CloseScreenProcPtr CloseScreen;
     ScreenBlockHandlerProcPtr BlockHandler;
+
+    UCHAR		jChipType;
              
     Bool 		noAccel;
     Bool 		noHWC;
