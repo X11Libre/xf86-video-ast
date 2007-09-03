@@ -78,6 +78,7 @@ extern void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern Bool ASTAccelInit(ScreenPtr pScreen);
 
 extern Bool ASTCursorInit(ScreenPtr pScreen);
+extern void ASTHideCursor(ScrnInfoPtr pScrn);
 
 /* Mandatory functions */
 static void ASTIdentify(int flags);
@@ -248,7 +249,11 @@ static XF86ModuleVersionInfo astVersRec = {
    XORG_VERSION_CURRENT,
    AST_MAJOR_VERSION, AST_MINOR_VERSION, AST_PATCH_VERSION,
    ABI_CLASS_VIDEODRV,
+#ifdef PATCH_ABI_VERSION
+   ABI_VIDEODRV_VERSION_PATCH,
+#else 
    ABI_VIDEODRV_VERSION,
+#endif
    MOD_CLASS_VIDEODRV,
    {0, 0, 0, 0}
 };
@@ -627,6 +632,12 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pScrn->memPhysBase = (ULONG)pAST->FBPhysAddr;
    pScrn->fbOffset = 0;
 
+   /* Get Revision */
+   if (pAST->PciInfo->chipRev >= 0x10)
+       pAST->jChipType = AST2100;
+   else
+       pAST->jChipType = AST2000;
+
    /* Do DDC 
     * should be done after xf86CollectOptions
     */
@@ -641,12 +652,21 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    clockRanges->interlaceAllowed = FALSE;
    clockRanges->doubleScanAllowed = FALSE;
    
-   i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
+   /* Add for AST2100, ycchen@061807 */
+   if (pAST->jChipType == AST2100)
+       i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
+			 pScrn->display->modes, clockRanges,
+			 0, 320, 1920, 8 * pScrn->bitsPerPixel,
+			 200, 1200,
+			 pScrn->display->virtualX, pScrn->display->virtualY,
+			 pAST->FbMapSize, LOOKUP_BEST_REFRESH);
+   else
+       i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
 			 pScrn->display->modes, clockRanges,
 			 0, 320, 1600, 8 * pScrn->bitsPerPixel,
 			 200, 1200,
 			 pScrn->display->virtualX, pScrn->display->virtualY,
-			 pAST->FbMapSize, LOOKUP_BEST_REFRESH);
+			 pAST->FbMapSize, LOOKUP_BEST_REFRESH);   
 
    if (i == -1) {
       ASTFreeRec(pScrn);
@@ -884,7 +904,8 @@ ASTSwitchMode(int scrnIndex, DisplayModePtr mode, int flags)
    if (pAST->pHWCPtr) {
        xf86FreeOffscreenLinear(pAST->pHWCPtr);		/* free HWC Cache */
        pAST->pHWCPtr = NULL;      
-   }    
+   }
+   ASTHideCursor(pScrn);
 #endif
 
 #ifdef Accel_2D 
@@ -942,7 +963,8 @@ ASTLeaveVT(int scrnIndex, int flags)
    if (pAST->pHWCPtr) {
        xf86FreeOffscreenLinear(pAST->pHWCPtr);		/* free HWC Cache */
        pAST->pHWCPtr = NULL;      
-   }    
+   }
+   ASTHideCursor(pScrn);
 #endif
 
 #ifdef Accel_2D  
@@ -971,6 +993,8 @@ static ModeStatus
 ASTValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 {
 
+   ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
+   ASTRecPtr   pAST  = ASTPTR(pScrn);
    Bool Flags = MODE_NOMODE;
    	
    if (mode->Flags & V_INTERLACE) {
@@ -987,6 +1011,13 @@ ASTValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 		    "Removing the mode \"%s\"\n", mode->name);
       }   	
       return Flags;   	
+   }
+
+   /* Add for AST2100, ycchen@061807 */
+   if (pAST->jChipType == AST2100)
+   {
+       if ( (mode->CrtcHDisplay == 1920) && (mode->CrtcVDisplay == 1200) )
+           return MODE_OK;
    }
    
    switch (mode->CrtcHDisplay)
@@ -1064,7 +1095,8 @@ ASTCloseScreen(int scrnIndex, ScreenPtr pScreen)
    if (pAST->pHWCPtr) {
        xf86FreeOffscreenLinear(pAST->pHWCPtr);		/* free HWC Cache */
        pAST->pHWCPtr = NULL;      
-   }    
+   }
+   ASTHideCursor(pScrn);
 #endif
    	   
 #ifdef Accel_2D  
@@ -1103,7 +1135,7 @@ ASTSave(ScrnInfoPtr pScrn)
    ASTRecPtr pAST;
    vgaRegPtr vgaReg;
    ASTRegPtr astReg;   
-   int i;
+   int i, icount=0;
 
    pAST = ASTPTR(pScrn);
    vgaReg = &VGAHWPTR(pScrn)->SavedReg;
@@ -1115,9 +1147,13 @@ ASTSave(ScrnInfoPtr pScrn)
    /* Ext. Save */
    vASTOpenKey(pScrn);
    
-   for (i=0; i<0x50; i++)
-       GetIndexReg(CRTC_PORT, (UCHAR) (i+0x80), astReg->ExtCRTC[i]);   	
-   
+   /* fixed Console Switch Refresh Rate Incorrect issue, ycchen@051106 */   
+   for (i=0x81; i<=0xB6; i++)
+       GetIndexReg(CRTC_PORT, (UCHAR) (i), astReg->ExtCRTC[icount++]);
+   for (i=0xBC; i<=0xC1; i++)
+       GetIndexReg(CRTC_PORT, (UCHAR) (i), astReg->ExtCRTC[icount++]);
+   GetIndexReg(CRTC_PORT, (UCHAR) (0xBB), astReg->ExtCRTC[icount]);
+
 }
 
 static void
@@ -1126,7 +1162,7 @@ ASTRestore(ScrnInfoPtr pScrn)
    ASTRecPtr pAST;
    vgaRegPtr vgaReg;
    ASTRegPtr astReg;   
-   int i;
+   int i, icount=0;
 
    pAST = ASTPTR(pScrn);
    vgaReg = &VGAHWPTR(pScrn)->SavedReg;
@@ -1140,9 +1176,13 @@ ASTRestore(ScrnInfoPtr pScrn)
    /* Ext. restore */
    vASTOpenKey(pScrn);
    
-   for (i=0; i<0x50; i++)
-       SetIndexReg(CRTC_PORT, (UCHAR) (i+0x80), astReg->ExtCRTC[i]);   	
-   
+   /* fixed Console Switch Refresh Rate Incorrect issue, ycchen@051106 */
+   for (i=0x81; i<=0xB6; i++)
+       SetIndexReg(CRTC_PORT, (UCHAR) (i), astReg->ExtCRTC[icount++]);
+   for (i=0xBC; i<=0xC1; i++)
+       SetIndexReg(CRTC_PORT, (UCHAR) (i), astReg->ExtCRTC[icount++]);
+   SetIndexReg(CRTC_PORT, (UCHAR) (0xBB), astReg->ExtCRTC[icount]);
+
 }
 
 static void
@@ -1193,7 +1233,8 @@ vFillASTModeInfo (ScrnInfoPtr pScrn)
     pAST->VideoModeInfo.ScreenWidth = pScrn->virtualX;   
     pAST->VideoModeInfo.ScreenHeight = pScrn->virtualY;   
     pAST->VideoModeInfo.bitsPerPixel = pScrn->bitsPerPixel;   
-    pAST->VideoModeInfo.ScreenPitch = pScrn->virtualX * ((pScrn->bitsPerPixel + 1) / 8) ;       
+    /* Fixed screen pitch incorrect in some specific monitor, ycchen@071707 */
+    pAST->VideoModeInfo.ScreenPitch = pScrn->displayWidth * ((pScrn->bitsPerPixel + 1) / 8) ;
 
 }
 
