@@ -1,3 +1,7 @@
+2008-03-01  Y.C. Chen  <yc_chen@aspeedtech.com>
+        * src/ast_driver.c:
+        Add _X_EXPORT for symbols public visibility
+
 2007-08-24  Y.C. Chen  <yc_chen@aspeedtech.com>
          
 	* configure.ac:

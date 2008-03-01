@@ -109,7 +109,7 @@ static Bool ASTModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode);
  * This is intentionally screen-independent.  It indicates the binding
  * choice made in the first PreInit.
  */
-DriverRec AST = {
+_X_EXPORT DriverRec AST = {
    AST_VERSION,
    AST_DRIVER_NAME,
    ASTIdentify,
@@ -258,7 +258,7 @@ static XF86ModuleVersionInfo astVersRec = {
    {0, 0, 0, 0}
 };
 
-XF86ModuleData astModuleData = { &astVersRec, astSetup, NULL };
+_X_EXPORT XF86ModuleData astModuleData = { &astVersRec, astSetup, NULL };
 
 static pointer
 astSetup(pointer module, pointer opts, int *errmaj, int *errmin)
