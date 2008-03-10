@@ -339,6 +339,7 @@ ASTProbe(DriverPtr drv, int flags)
       return FALSE;
     }
 
+#ifndef XSERVER_LIBPCIACCESS
    /*
     * This probing is just checking the PCI data the server already
     * collected.
@@ -346,6 +347,7 @@ ASTProbe(DriverPtr drv, int flags)
     if (xf86GetPciVideoInfo() == NULL) {
 	return FALSE;
     }
+#endif
 
     numUsed = xf86MatchPciInstances(AST_NAME, PCI_VENDOR_AST,
 				   ASTChipsets, ASTPciChipsets,
@@ -517,8 +519,10 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pAST = ASTPTR(pScrn);
    pAST->pEnt    = xf86GetEntityInfo(pScrn->entityList[0]);
    pAST->PciInfo = xf86GetPciInfoForEntity(pAST->pEnt->index);
+#ifndef XSERVER_LIBPCIACCESS
    pAST->PciTag  = pciTag(pAST->PciInfo->bus, pAST->PciInfo->device,
 			  pAST->PciInfo->func);
+#endif
 
    /* Process the options
     * pScrn->confScreen, pScrn->display, pScrn->monitor, pScrn->numEntities, 
@@ -549,7 +553,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    } else {
       from = X_PROBED;
       pScrn->chipset = (char *)xf86TokenToString(ASTChipsets,
-						 pAST->PciInfo->chipType);
+						 PCI_DEV_DEVICE_ID(pAST->PciInfo));
    }
    if (pAST->pEnt->device->chipRev >= 0) {
       xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "ChipRev override: %d\n",
@@ -568,16 +572,16 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
     /* "Patch" the PIOOffset inside vgaHW in order to force
      * the vgaHW module to use our relocated i/o ports.
      */
-    VGAHWPTR(pScrn)->PIOOffset = pAST->PIOOffset = pAST->IODBase + pAST->PciInfo->ioBase[2] - 0x380;
+    VGAHWPTR(pScrn)->PIOOffset = pAST->PIOOffset = pAST->IODBase + PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) - 0x380;
 	
-    pAST->RelocateIO = (IOADDRESS)(pAST->PciInfo->ioBase[2] + pAST->IODBase);
+    pAST->RelocateIO = (IOADDRESS)(PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) + pAST->IODBase);
 	
    if (pAST->pEnt->device->MemBase != 0) {
       pAST->FBPhysAddr = pAST->pEnt->device->MemBase;
       from = X_CONFIG;
    } else {
-      if (pAST->PciInfo->memBase[0] != 0) {
-	 pAST->FBPhysAddr = pAST->PciInfo->memBase[0] & 0xFFF00000;
+      if (PCI_REGION_BASE(pAST->PciInfo, 0, REGION_MEM) != 0) {
+	 pAST->FBPhysAddr = PCI_REGION_BASE(pAST->PciInfo, 0, REGION_MEM) & 0xFFF00000;
 	 from = X_PROBED;
       } else {
 	 xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
@@ -593,8 +597,8 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
       pAST->MMIOPhysAddr = pAST->pEnt->device->IOBase;
       from = X_CONFIG;
    } else {
-      if (pAST->PciInfo->memBase[1]) {
-	 pAST->MMIOPhysAddr = pAST->PciInfo->memBase[1] & 0xFFFF0000;
+      if (PCI_REGION_BASE(pAST->PciInfo, 1, REGION_MEM)) {
+	 pAST->MMIOPhysAddr = PCI_REGION_BASE(pAST->PciInfo, 1, REGION_IO) & 0xFFFF0000;
 	 from = X_PROBED;
       } else {
 	 xf86DrvMsg(pScrn->scrnIndex, X_INFO,
@@ -633,7 +637,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pScrn->fbOffset = 0;
 
    /* Get Revision */
-   if (pAST->PciInfo->chipRev >= 0x10)
+   if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x10)
        pAST->jChipType = AST2100;
    else
        pAST->jChipType = AST2000;

@@ -23,6 +23,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "ast_pcirename.h"
+
 /* Compiler Options */
 #define	Accel_2D
 /* #define MMIO_2D */
@@ -130,8 +132,12 @@ typedef struct {
 typedef struct _ASTRec {
 	
     EntityInfoPtr 	pEnt;
-    pciVideoPtr 	PciInfo;
-    PCITAG 		PciTag;
+#ifndef XSERVER_LIBPCIACCESS	
+	pciVideoPtr		PciInfo;
+	PCITAG			PciTag;
+#else
+	struct pci_device       *PciInfo;
+#endif
 
     OptionInfoPtr 	Options;
     DisplayModePtr      ModePtr;		    
