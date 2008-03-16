@@ -112,10 +112,9 @@ ASTUnmapMem(ScrnInfoPtr pScrn)
 Bool
 ASTMapMMIO(ScrnInfoPtr pScrn)
 {
-   int mmioFlags;
    ASTRecPtr pAST = ASTPTR(pScrn);
-
 #ifndef XSERVER_LIBPCIACCESS
+   int mmioFlags;
 
 #if !defined(__alpha__)
    mmioFlags = VIDMEM_MMIO | VIDMEM_READSIDEEFFECT;

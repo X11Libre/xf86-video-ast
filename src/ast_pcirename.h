@@ -119,4 +119,4 @@ typedef struct pci_device *pciVideoPtr;
 
 #endif /* XSERVER_LIBPCIACCESS */
 
-#endif /* CIRPCIRENAME_H */
+#endif /* ASTPCIRENAME_H */
