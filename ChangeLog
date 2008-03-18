@@ -1,3 +1,8 @@
+2008-03-18  Y.C. Chen  <yc_chen@aspeedtech.com>
+        * src/ast_2dtool.c
+        * src/ast_tool.c
+        Compiler Warning Fixed
+
 2008-03-01  Y.C. Chen  <yc_chen@aspeedtech.com>
         * src/ast_driver.c:
         Add _X_EXPORT for symbols public visibility
