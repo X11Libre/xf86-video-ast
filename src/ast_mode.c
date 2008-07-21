@@ -534,6 +534,7 @@ void vSetStdReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
     /* Set GR */
     for (i=0; i<9; i++)
     {
+        jReg = pStdModePtr->GR[i];
         SetIndexReg(GR_PORT,(UCHAR) i, jReg);        
           	    	
     }    

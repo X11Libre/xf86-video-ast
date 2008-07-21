@@ -1,3 +1,7 @@
+2008-07-21  Y.C. Chen  <yc_chen@aspeedtech.com>
+        * src/ast_mode.c
+        Fixed Incorrect Settings for Graphices Registers 
+
 2008-03-18  Y.C. Chen  <yc_chen@aspeedtech.com>
         * src/ast_2dtool.c
         * src/ast_tool.c
