@@ -564,11 +564,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 	      (pScrn->chipset != NULL) ? pScrn->chipset : "Unknown ast");
 
    /* Resource Allocation */
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,2,99,0,0)
-    pAST->IODBase = 0;
-#else
     pAST->IODBase = pScrn->domainIOBase;  
-#endif
     /* "Patch" the PIOOffset inside vgaHW in order to force
      * the vgaHW module to use our relocated i/o ports.
      */
