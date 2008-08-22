@@ -40,10 +40,15 @@
 #define PCI_CHIP_AST2000		0x2000		
 #endif
 
+#ifndef	PCI_CHIP_AST2100
+#define PCI_CHIP_AST2100		0x2010
+#endif
+
 typedef enum _CHIP_ID {
     VGALegacy,
     AST2000,
-    AST2100	
+    AST2100,
+    AST1100
 } CHIP_ID;
 
 /* AST REC Info */

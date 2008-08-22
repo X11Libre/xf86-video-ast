@@ -1,3 +1,16 @@
+2008-08-22  Y.C. Chen  <yc_chen@aspeedtech.com>
+        * src/ast.h
+        * src/ast_driver.c
+        * src/ast_vgatool.c, ast_vgatool.h
+        Support AST1100/2050/2100
+        
+        * src/ast_mode.c ast_mode.h
+        Modify the display timing of 1920x1200 to reduce blanking timing
+
+        * src/ast_driver.c
+        * src/ast_vgatool.c
+        Support Clone Display for Two VGA
+        
 2008-07-21  Y.C. Chen  <yc_chen@aspeedtech.com>
         * src/ast_mode.c
         Fixed Incorrect Settings for Graphices Registers 

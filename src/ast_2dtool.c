@@ -167,7 +167,7 @@ bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST)
         }     
                                  
         *(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) = ulVMCmdQBasePort;         
-        pAST->CMDQInfo.ulWritePointer = *(ULONG *) (pAST->CMDQInfo.pjWritePort);                 
+        pAST->CMDQInfo.ulWritePointer = *(ULONG *) (pAST->CMDQInfo.pjWritePort) << 3;
         break;
         
     case VM_CMD_MMIO:

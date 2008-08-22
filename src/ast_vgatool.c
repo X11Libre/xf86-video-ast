@@ -61,11 +61,13 @@ void vASTOpenKey(ScrnInfoPtr pScrn);
 Bool bASTRegInit(ScrnInfoPtr pScrn);
 ULONG GetVRAMInfo(ScrnInfoPtr pScrn);
 ULONG GetMaxDCLK(ScrnInfoPtr pScrn);
+void GetChipType(ScrnInfoPtr pScrn);
 void vAST1000DisplayOn(ASTRecPtr pAST);
 void vAST1000DisplayOff(ASTRecPtr pAST);
 void vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
 void vASTLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices, LOCO *colors, VisualPtr pVisual);
 void ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags);
+Bool GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
 
 void
 vASTOpenKey(ScrnInfoPtr pScrn)
@@ -172,7 +174,10 @@ GetMaxDCLK(ScrnInfoPtr pScrn)
        
    }  
    
-   /* Get Bandwidth */  
+   /* Get Bandwidth */
+   /* Modify DARM utilization to 60% for AST1100/2100 16bits DRAM, ycchen@032508 */
+   if ( ((pAST->jChipType == AST2100) || (pAST->jChipType == AST1100)) && (ulDRAMBusWidth == 16) )
+       DRAMEfficiency = 600;     
    ulDRAMBandwidth = ulMCLK * ulDRAMBusWidth * 2 / 8;
    ActualDRAMBandwidth = ulDRAMBandwidth * DRAMEfficiency / 1000;
    
@@ -183,10 +188,31 @@ GetMaxDCLK(ScrnInfoPtr pScrn)
    else    
        ulDCLK = ActualDRAMBandwidth / ((pScrn->bitsPerPixel+1) / 8);	   
 
-   if (ulDCLK > 165) ulDCLK = 165;
-   
+   /* Add for AST2100, ycchen@061807 */
+   if (pAST->jChipType == AST2100)
+       if (ulDCLK > 200) ulDCLK = 200;
+   else
+       if (ulDCLK > 165) ulDCLK = 165;       
+    
    return(ulDCLK);
    
+}
+
+void
+GetChipType(ScrnInfoPtr pScrn)
+{
+   ASTRecPtr pAST = ASTPTR(pScrn);
+   ULONG ulData;
+   
+   pAST->jChipType = AST2100;
+
+   *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
+   *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;        
+
+   ulData = *(ULONG *) (pAST->MMIOVirtualAddr + 0x1207c);       
+   
+   if ((ulData & 0x0300) == 0x0200)
+       pAST->jChipType = AST1100;   
 }
 
 void
@@ -319,3 +345,96 @@ ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int fla
 
 
 }
+
+#define I2C_BASE	0x1e780000
+#define I2C_OFFSET	(0xA000 + 0x40 * 4)	/* port4 */
+#define I2C_DEVICEADDR	0x0A0			/* slave addr */
+
+Bool
+GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
+{
+    ASTRecPtr pAST = ASTPTR(pScrn);
+    UCHAR *ulI2CBase = pAST->MMIOVirtualAddr + 0x10000 + I2C_OFFSET;
+    ULONG i, ulData;    
+    UCHAR *pjEDID;
+    
+    pjEDID = pEDIDBuffer;
+
+    /* SCU settings */
+    *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
+    *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
+    xf86UDelay(10000);
+
+    *(ULONG *) (pAST->MMIOVirtualAddr + 0x12000) = 0x1688A8A8;    
+    ulData = *(ULONG *) (pAST->MMIOVirtualAddr + 0x12004);
+    ulData &= 0xfffffffb;
+    *(ULONG *) (pAST->MMIOVirtualAddr + 0x12004) = ulData;    
+    xf86UDelay(10000);
+    
+    /* I2C settings */
+    *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = I2C_BASE;
+    *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
+    xf86UDelay(10000);
+    
+    /* I2C Start */
+    *(ULONG *) (ulI2CBase + 0x00) = 0x0;
+    *(ULONG *) (ulI2CBase + 0x04) = 0x77777355;
+    *(ULONG *) (ulI2CBase + 0x08) = 0x0;
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x00) = 0x1;
+    *(ULONG *) (ulI2CBase + 0x0C) = 0xAF;
+    *(ULONG *) (ulI2CBase + 0x20) = I2C_DEVICEADDR;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x03;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x03));
+    if (ulData & 0x02)				/* NACK */
+        return (FALSE);
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x20) = (ULONG) 0;	/* Offset */
+    *(ULONG *) (ulI2CBase + 0x14) = 0x02;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x01));
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x20) = I2C_DEVICEADDR + 1;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x03; 
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x01));
+    
+    /* I2C Read */
+    for (i=0; i<127; i++)
+    {
+        *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+        *(ULONG *) (ulI2CBase + 0x0C) |= 0x10;
+        *(ULONG *) (ulI2CBase + 0x14) = 0x08;
+        do {
+            ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+        } while (!(ulData & 0x04));
+        *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+        *(UCHAR *) (pjEDID++) = (UCHAR) ((*(ULONG *) (ulI2CBase + 0x20) & 0xFF00) >> 8);        	
+    }
+
+    /* Read Last Byte */
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x0C) |= 0x10;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x18;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x04));
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(UCHAR *) (pjEDID++) = (UCHAR) ((*(ULONG *) (ulI2CBase + 0x20) & 0xFF00) >> 8);        	
+
+    /* I2C Stop	 */
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x20;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x10));
+    *(ULONG *) (ulI2CBase + 0x0C) &= 0xffffffef;        
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    
+    return (TRUE);
+
+} /* GetVGA2EDID */
