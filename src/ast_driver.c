@@ -72,6 +72,7 @@ extern void ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementM
 extern void vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
 extern Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 extern Bool GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
+extern void vInitDRAMReg(ScrnInfoPtr pScrn);
 
 extern Bool bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
@@ -123,8 +124,8 @@ _X_EXPORT DriverRec AST = {
 
 /* Chipsets */
 static SymTabRec ASTChipsets[] = {
-   {PCI_CHIP_AST2000,	"AST2000 Family"},
-   {PCI_CHIP_AST2100,	"AST1100_2050_2100"},
+   {PCI_CHIP_AST2000,	"ASPEED Graphics Family"},
+   {PCI_CHIP_AST2100,	"ASPEED Graphics Family"},
    {-1,			NULL}
 };
 
@@ -223,6 +224,7 @@ const char *int10Symbols[] = {
    "xf86InitInt10",
    "xf86Int10AllocPages",
    "xf86int10Addr",
+   "xf86FreeInt10",
    NULL
 };
 
@@ -612,37 +614,57 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "IO registers at addr 0x%lX\n",
 	      (unsigned long) pAST->MMIOPhysAddr);
 	      
-   pScrn->videoRam = GetVRAMInfo(pScrn) / 1024;
-   from = X_DEFAULT;
-
-
-   if (pAST->pEnt->device->videoRam) {
-      pScrn->videoRam = pAST->pEnt->device->videoRam;
-      from = X_CONFIG;
-   }
-
-   pAST->FbMapSize = pScrn->videoRam * 1024;
-   pAST->MMIOMapSize = DEFAULT_MMIO_SIZE;
-
-   /* Map resource */
-   if (!ASTMapMem(pScrn)) {
-      xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Map FB Memory Failed \n");      	
-      return FALSE;
-   }
-   
+   /* Map MMIO */
+   pAST->MMIOMapSize = DEFAULT_MMIO_SIZE; 
    if (!ASTMapMMIO(pScrn)) {
       xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Map Memory Map IO Failed \n");      	
       return FALSE;
    }
 
-   pScrn->memPhysBase = (ULONG)pAST->FBPhysAddr;
-   pScrn->fbOffset = 0;
+   /* Init VGA Adapter */
+   if (!xf86IsPrimaryPci(pAST->PciInfo))
+   {
+       if (xf86LoadSubModule(pScrn, "int10")) {
+ 	       xf86Int10InfoPtr pInt10;
+	       xf86LoaderReqSymLists(int10Symbols, NULL);
+	       xf86DrvMsg(pScrn->scrnIndex,X_INFO,"initializing int10\n");
+	       pInt10 = xf86InitInt10(pAST->pEnt->index);
+	       xf86FreeInt10(pInt10);
+       }
+   }
 
-   /* Get Revision */
+   vASTOpenKey(pScrn);
+   bASTRegInit(pScrn);
+
+   /* Get Chip Type */
    if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x10)
        GetChipType(pScrn);
    else
        pAST->jChipType = AST2000;
+
+   if (!xf86IsPrimaryPci(pAST->PciInfo))
+   {   
+       vInitDRAMReg (pScrn);
+   }
+      
+   /* Map Framebuffer */
+   pScrn->videoRam = GetVRAMInfo(pScrn) / 1024;
+   from = X_DEFAULT;
+
+   if (pAST->pEnt->device->videoRam) {
+      pScrn->videoRam = pAST->pEnt->device->videoRam;
+      from = X_CONFIG;
+   }
+   
+   pAST->FbMapSize = pScrn->videoRam * 1024;
+   
+   if (!ASTMapMem(pScrn)) {
+      xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Map FB Memory Failed \n");      	
+      return FALSE;
+   }
+
+   pScrn->memPhysBase = (ULONG)pAST->FBPhysAddr;
+   pScrn->fbOffset = 0;
 
    /* Do DDC 
     * should be done after xf86CollectOptions
@@ -659,7 +681,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    clockRanges->doubleScanAllowed = FALSE;
    
    /* Add for AST2100, ycchen@061807 */
-   if (pAST->jChipType == AST2100)
+   if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200))
        i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
 			 pScrn->display->modes, clockRanges,
 			 0, 320, 1920, 8 * pScrn->bitsPerPixel,
@@ -1020,7 +1042,7 @@ ASTValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
    }
 
    /* Add for AST2100, ycchen@061807 */
-   if (pAST->jChipType == AST2100)
+   if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200))
    {
        if ( (mode->CrtcHDisplay == 1920) && (mode->CrtcVDisplay == 1200) )
            return MODE_OK;
@@ -1084,7 +1106,6 @@ ASTFreeRec(ScrnInfoPtr pScrn)
 static Bool
 ASTSaveScreen(ScreenPtr pScreen, Bool unblack)
 {
-   /* more ref. SiS */	
    return vgaHWSaveScreen(pScreen, unblack);
 }
 
@@ -1148,7 +1169,12 @@ ASTSave(ScrnInfoPtr pScrn)
    astReg = &pAST->SavedReg;
     
    /* do save */    
-   vgaHWSave(pScrn, vgaReg, VGA_SR_ALL);
+   if (xf86IsPrimaryPci(pAST->PciInfo)) {
+       vgaHWSave(pScrn, vgaReg, VGA_SR_ALL);
+   }
+   else {
+       vgaHWSave(pScrn, vgaReg, VGA_SR_MODE);
+   }
    
    /* Ext. Save */
    vASTOpenKey(pScrn);
@@ -1175,8 +1201,11 @@ ASTRestore(ScrnInfoPtr pScrn)
    astReg = &pAST->SavedReg;
     
    /* do restore */    
-   vgaHWProtect(pScrn, TRUE);   
-   vgaHWRestore(pScrn, vgaReg, VGA_SR_ALL);	      
+   vgaHWProtect(pScrn, TRUE);
+   if (xf86IsPrimaryPci(pAST->PciInfo))
+       vgaHWRestore(pScrn, vgaReg, VGA_SR_ALL);
+   else
+       vgaHWRestore(pScrn, vgaReg, VGA_SR_MODE);     
    vgaHWProtect(pScrn, FALSE);   
    
    /* Ext. restore */
@@ -1230,7 +1259,7 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
       MonInfo = MonInfo1;
       
       /* For VGA2 CLONE Support, ycchen@012508 */
-      if (xf86ReturnOptValBool(pAST->Options, OPTION_VGA2_CLONE, FALSE)) {
+      if ((xf86ReturnOptValBool(pAST->Options, OPTION_VGA2_CLONE, FALSE)) || pAST->VGA2Clone) {
           if (GetVGA2EDID(pScrn, DDC_data) == TRUE) {
               xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Get VGA2 EDID Correctly!! \n");	
               MonInfo2 = xf86InterpretEDID(pScrn->scrnIndex, DDC_data);

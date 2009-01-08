@@ -48,7 +48,9 @@ typedef enum _CHIP_ID {
     VGALegacy,
     AST2000,
     AST2100,
-    AST1100
+    AST1100,
+    AST2200,
+    AST2150
 } CHIP_ID;
 
 /* AST REC Info */
@@ -161,6 +163,7 @@ typedef struct _ASTRec {
     Bool 		MMIO2D;
     int			ENGCaps;
     int			DBGSelect;
+    Bool		VGA2Clone;
               	
     ULONG     		FBPhysAddr;		/* Frame buffer physical address     */
     ULONG     		MMIOPhysAddr;     	/* MMIO region physical address      */

@@ -1,3 +1,17 @@
+2008-08-22  Y.C. Chen  >yc_chen@aspedtech.com>
+        * src/ast.h
+        * src/ast_driver.c
+        * src/ast_2dtool.c, ast_2dtool.h
+        * src/ast_accel.c
+        * src/ast_cursor.c
+        * src/ast_mode.c
+        * src/ast_vgatool.c
+        - Support AST2200/2150
+        - Support ASPEED Graphics as Secondary
+        - Fixed AST1100 1280x1024x32bpp thershold issue
+        - Fixed Screen saver - celtic, DecayScreen abnormal issues
+        - Fixed Game - Potato Guys abnormal issue
+        
 2008-08-22  Y.C. Chen  <yc_chen@aspeedtech.com>
         * src/ast.h
         * src/ast_driver.c

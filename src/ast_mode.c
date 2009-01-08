@@ -684,8 +684,16 @@ void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
     SetIndexRegMask(CRTC_PORT,0xA8, 0xFD, (UCHAR) jRegA8);                                
 
     /* Set Threshold */
-    SetIndexReg(CRTC_PORT,0xA7, 0x2F);                                
-    SetIndexReg(CRTC_PORT,0xA6, 0x1F);                                
+    if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST1100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2150) ) 
+    {
+        SetIndexReg(CRTC_PORT,0xA7, 0x3F);
+        SetIndexReg(CRTC_PORT,0xA6, 0x2F);    	
+    }
+    else
+    {	
+        SetIndexReg(CRTC_PORT,0xA7, 0x2F);
+        SetIndexReg(CRTC_PORT,0xA6, 0x1F);
+    }    
    	
 }
 
