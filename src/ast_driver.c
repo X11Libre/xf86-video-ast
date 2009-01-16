@@ -602,7 +602,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
       from = X_CONFIG;
    } else {
       if (PCI_REGION_BASE(pAST->PciInfo, 1, REGION_MEM)) {
-	 pAST->MMIOPhysAddr = PCI_REGION_BASE(pAST->PciInfo, 1, REGION_IO) & 0xFFFF0000;
+	 pAST->MMIOPhysAddr = PCI_REGION_BASE(pAST->PciInfo, 1, REGION_MEM) & 0xFFFF0000;
 	 from = X_PROBED;
       } else {
 	 xf86DrvMsg(pScrn->scrnIndex, X_INFO,

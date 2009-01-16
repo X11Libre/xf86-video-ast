@@ -1,3 +1,7 @@
+2009-01-16  Y.C. Chen  <yc_chen@aspedtech.com>
+        * src/ast_driver.c
+        - Fixed Support Modes Incorrect Issues on Solaris 10 x86
+
 2009-01-08  Y.C. Chen  >yc_chen@aspedtech.com>
         * src/ast.h
         * src/ast_driver.c

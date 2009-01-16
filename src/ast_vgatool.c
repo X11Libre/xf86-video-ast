@@ -194,9 +194,13 @@ GetMaxDCLK(ScrnInfoPtr pScrn)
 
    /* Add for AST2100, ycchen@061807 */
    if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200))
+   {
        if (ulDCLK > 200) ulDCLK = 200;
+   }
    else
+   {
        if (ulDCLK > 165) ulDCLK = 165;       
+   }
     
    return(ulDCLK);
    
