@@ -158,93 +158,6 @@ static const OptionInfoRec ASTOptions[] = {
    {-1,			NULL,		OPTV_NONE,	{0}, 	FALSE}
 };
 
-const char *vgahwSymbols[] = {
-   "vgaHWFreeHWRec",
-   "vgaHWGetHWRec",
-   "vgaHWGetIOBase",
-   "vgaHWGetIndex",
-   "vgaHWInit",
-   "vgaHWLock",
-   "vgaHWMapMem",
-   "vgaHWProtect",
-   "vgaHWRestore",
-   "vgaHWSave",
-   "vgaHWSaveScreen",
-   "vgaHWSetMmioFuncs",
-   "vgaHWUnlock",
-   "vgaHWUnmapMem",
-   NULL
-};
-
-const char *fbSymbols[] = {
-   "fbPictureInit",
-   "fbScreenInit",
-   NULL
-};
-
-const char *vbeSymbols[] = {
-   "VBEInit",
-   "VBEFreeModeInfo",
-   "VBEFreeVBEInfo",
-   "VBEGetModeInfo",
-   "VBEGetModePool",
-   "VBEGetVBEInfo",
-   "VBEGetVBEMode",
-   "VBEPrintModes",
-   "VBESaveRestore",
-   "VBESetDisplayStart",
-   "VBESetGetDACPaletteFormat",
-   "VBESetGetLogicalScanlineLength",
-   "VBESetGetPaletteData",
-   "VBESetModeNames",
-   "VBESetModeParameters",
-   "VBESetVBEMode",
-   "VBEValidateModes",
-   "vbeDoEDID",
-   "vbeFree",
-   NULL
-};
-
-#ifdef XFree86LOADER
-static const char *vbeOptionalSymbols[] = {
-   "VBEDPMSSet",
-   "VBEGetPixelClock",
-   NULL
-};
-#endif
-
-const char *ddcSymbols[] = {
-   "xf86PrintEDID",
-   "xf86SetDDCproperties",
-   NULL
-};
-
-const char *int10Symbols[] = {
-   "xf86ExecX86int10",
-   "xf86InitInt10",
-   "xf86Int10AllocPages",
-   "xf86int10Addr",
-   "xf86FreeInt10",
-   NULL
-};
-
-const char *xaaSymbols[] = {
-   "XAACreateInfoRec",
-   "XAADestroyInfoRec",
-   "XAAInit",
-   "XAACopyROP",
-   "XAAPatternROP",
-   NULL
-};
-
-const char *ramdacSymbols[] = {
-   "xf86CreateCursorInfoRec",
-   "xf86DestroyCursorInfoRec",
-   "xf86InitCursor",
-   NULL
-};
-
-
 #ifdef XFree86LOADER
 
 static MODULESETUPPROTO(astSetup);
@@ -278,15 +191,6 @@ astSetup(pointer module, pointer opts, int *errmaj, int *errmin)
    if (!setupDone) {
       setupDone = TRUE;
       xf86AddDriver(&AST, module, 0);
-
-      /*
-       * Tell the loader about symbols from other modules that this module
-       * might refer to.
-       */
-      LoaderRefSymLists(vgahwSymbols,
-			fbSymbols, xaaSymbols, ramdacSymbols,
-			vbeSymbols, vbeOptionalSymbols,
-			ddcSymbols, int10Symbols, NULL);
 
       /*
        * The return value must be non-NULL on success even though there
@@ -445,12 +349,10 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    /* The vgahw module should be loaded here when needed */
    if (!xf86LoadSubModule(pScrn, "vgahw"))
       return FALSE;
-   xf86LoaderReqSymLists(vgahwSymbols, NULL);
 
    /* The fb module should be loaded here when needed */
    if (!xf86LoadSubModule(pScrn, "fb"))
       return FALSE;
-   xf86LoaderReqSymLists(fbSymbols, NULL);      
    	
    /* Allocate a vgaHWRec */
    if (!vgaHWGetHWRec(pScrn))
@@ -626,7 +528,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    {
        if (xf86LoadSubModule(pScrn, "int10")) {
  	       xf86Int10InfoPtr pInt10;
-	       xf86LoaderReqSymLists(int10Symbols, NULL);
 	       xf86DrvMsg(pScrn->scrnIndex,X_INFO,"initializing int10\n");
 	       pInt10 = xf86InitInt10(pAST->pEnt->index);
 	       xf86FreeInt10(pInt10);
@@ -731,7 +632,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 	   ASTFreeRec(pScrn);
 	   return FALSE;
        }       
-       xf86LoaderReqSymLists(xaaSymbols, NULL);
        
        pAST->noAccel = FALSE; 
        
@@ -765,7 +665,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 	 ASTFreeRec(pScrn);
 	 return FALSE;
       }
-      xf86LoaderReqSymLists(ramdacSymbols, NULL);
       
       pAST->noHWC = FALSE;  
       pAST->HWCInfo.HWC_NUM = DEFAULT_HWC_NUM;
@@ -1261,7 +1160,6 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
    }
 
    if (xf86LoadSubModule(pScrn, "vbe") && (pVbe = VBEInit(NULL, index))) {
-      xf86LoaderReqSymLists(vbeSymbols, NULL);
       MonInfo1 = vbeDoEDID(pVbe, NULL);
       MonInfo = MonInfo1;
       
