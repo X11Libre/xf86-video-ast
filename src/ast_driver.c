@@ -64,6 +64,7 @@ extern void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 
 extern void vASTOpenKey(ScrnInfoPtr pScrn);
 extern Bool bASTRegInit(ScrnInfoPtr pScrn);
+extern void GetDRAMInfo(ScrnInfoPtr pScrn);
 extern ULONG GetVRAMInfo(ScrnInfoPtr pScrn);
 extern ULONG GetMaxDCLK(ScrnInfoPtr pScrn);
 extern void GetChipType(ScrnInfoPtr pScrn);
@@ -73,6 +74,9 @@ extern void vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
 extern Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 extern Bool GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
 extern void vInitDRAMReg(ScrnInfoPtr pScrn);
+extern Bool bIsVGAEnabled(ScrnInfoPtr pScrn);
+extern void ASTBlankScreen(ScrnInfoPtr pScreen, Bool unblack);
+extern Bool InitVGA(ScrnInfoPtr pScrn);
 
 extern Bool bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
@@ -526,12 +530,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    /* Init VGA Adapter */
    if (!xf86IsPrimaryPci(pAST->PciInfo))
    {
-       if (xf86LoadSubModule(pScrn, "int10")) {
- 	       xf86Int10InfoPtr pInt10;
-	       xf86DrvMsg(pScrn->scrnIndex,X_INFO,"initializing int10\n");
-	       pInt10 = xf86InitInt10(pAST->pEnt->index);
-	       xf86FreeInt10(pInt10);
-       }
+       InitVGA(pScrn);      	
    }
 
    vASTOpenKey(pScrn);
@@ -543,10 +542,8 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    else
        pAST->jChipType = AST2000;
 
-   if (!xf86IsPrimaryPci(pAST->PciInfo))
-   {   
-       vInitDRAMReg (pScrn);
-   }
+   /* Get DRAM Info */
+   GetDRAMInfo(pScrn);
       
    /* Map Framebuffer */
    pScrn->videoRam = GetVRAMInfo(pScrn) / 1024;
@@ -876,6 +873,13 @@ ASTEnterVT(int scrnIndex, int flags)
 {
    ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
 
+   /* Fixed suspend can't resume issue */
+   if (!bIsVGAEnabled(pScrn))
+   {
+       InitVGA(pScrn);      	   	
+       ASTRestore(pScrn);
+   }   
+
    if (!ASTModeInit(pScrn, pScrn->currentMode))
       return FALSE;
    ASTAdjustFrame(scrnIndex, pScrn->frameX0, pScrn->frameY0, 0);
@@ -1012,7 +1016,17 @@ ASTFreeRec(ScrnInfoPtr pScrn)
 static Bool
 ASTSaveScreen(ScreenPtr pScreen, Bool unblack)
 {
-   return vgaHWSaveScreen(pScreen, unblack);
+   /* replacement of vgaHWBlankScreen(pScrn, unblank) without seq reset */
+   /* return vgaHWSaveScreen(pScreen, unblack); */   
+   ScrnInfoPtr pScrn = NULL;
+
+   if (pScreen != NULL)
+      pScrn = xf86Screens[pScreen->myNum];
+
+   if ((pScrn != NULL) && pScrn->vtSema) {
+     ASTBlankScreen(pScrn, unblack);
+   }
+   return (TRUE);   
 }
 
 static Bool
