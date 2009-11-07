@@ -451,18 +451,18 @@ GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
     /* SCU settings */
     *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
     *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
-    xf86UDelay(10000);
+    usleep(10000);
 
     *(ULONG *) (pAST->MMIOVirtualAddr + 0x12000) = 0x1688A8A8;    
     ulData = *(ULONG *) (pAST->MMIOVirtualAddr + 0x12004);
     ulData &= 0xfffffffb;
     *(ULONG *) (pAST->MMIOVirtualAddr + 0x12004) = ulData;    
-    xf86UDelay(10000);
+    usleep(10000);
     
     /* I2C settings */
     *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = I2C_BASE;
     *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
-    xf86UDelay(10000);
+    usleep(10000);
     
     /* I2C Start */
     *(ULONG *) (ulI2CBase + 0x00) = 0x0;
@@ -782,7 +782,7 @@ void vInitDRAMReg(ScrnInfoPtr pScrn)
             if (pjDRAMRegInfo->Index == 0xFF00)			/* Delay function */
             {
             	for (i=0; i<15; i++)				
-        	    xf86UDelay(pjDRAMRegInfo->Data);
+                    usleep(pjDRAMRegInfo->Data);
             }
             else if ( (pjDRAMRegInfo->Index == 0x0004) && (pAST->jChipType != AST2000) )
             {
