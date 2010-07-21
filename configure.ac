@@ -81,7 +81,8 @@ AC_SUBST([moduledir])
 DRIVER_NAME=nv
 AC_SUBST([DRIVER_NAME])
 
-AC_OUTPUT([
-	Makefile
-	src/Makefile
+AC_CONFIG_FILES([
+                Makefile
+                src/Makefile
 ])
+AC_OUTPUT
