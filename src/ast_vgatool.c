@@ -2292,8 +2292,8 @@ Bool bInitAST1180(ScrnInfoPtr pScrn)
     ReadAST1180SOC(AST1180_SCU_BASE+0x0c, ulData);	/* 2d clk */
     ulData &= 0xFFFFFFFD;
     WriteAST1180SOC(AST1180_SCU_BASE+0x0c, ulData);
-	
-	
+
+    return (TRUE);	
 } /* bInitAST1180 */
 	
 void GetAST1180DRAMInfo(ScrnInfoPtr pScrn)
