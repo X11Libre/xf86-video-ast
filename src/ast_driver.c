@@ -285,7 +285,7 @@ ASTProbe(DriverPtr drv, int flags)
 				   devSections, numDevSections,
 				   drv, &usedChips);
 
-    xfree(devSections);
+    free(devSections);
 
     if (flags & PROBE_DETECT) {
         if (numUsed > 0)
@@ -322,7 +322,7 @@ ASTProbe(DriverPtr drv, int flags)
         }  /* end of for-loop */
     } /* end of if flags */	   
 
-    xfree(usedChips);
+    free(usedChips);
 
     return foundScreen;
 }
@@ -347,6 +347,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    ClockRangePtr clockRanges;
    int i;
    MessageType from;
+   int maxPitch, maxHeight;
 
    /* Suport one adapter only now */
    if (pScrn->numEntities != 1)
@@ -462,7 +463,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
     * and pScrn->entityList should be initialized before
     */
    xf86CollectOptions(pScrn, NULL);   
-   if (!(pAST->Options = xalloc(sizeof(ASTOptions))))
+   if (!(pAST->Options = malloc(sizeof(ASTOptions))))
    {  	
       ASTFreeRec(pScrn);   	
       return FALSE;
@@ -624,23 +625,37 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    clockRanges->clockIndex = -1;
    clockRanges->interlaceAllowed = FALSE;
    clockRanges->doubleScanAllowed = FALSE;
-   
+
    /* Add for AST2100, ycchen@061807 */
    if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180))
-       i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
+   {
+       maxPitch  = 1920;
+       maxHeight = 1200;   	
+   }	
+   else
+   {
+       maxPitch  = 1600;
+       maxHeight = 1200;   	
+   }	   
+   
+   i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
 			 pScrn->display->modes, clockRanges,
-			 0, 320, 1920, 8 * pScrn->bitsPerPixel,
-			 200, 1200,
+			 0, 320, maxPitch, 8 * pScrn->bitsPerPixel,
+			 200, maxHeight,
 			 pScrn->display->virtualX, pScrn->display->virtualY,
 			 pAST->FbMapSize, LOOKUP_BEST_REFRESH);
-   else
-       i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
-			 pScrn->display->modes, clockRanges,
-			 0, 320, 1600, 8 * pScrn->bitsPerPixel,
-			 200, 1200,
-			 pScrn->display->virtualX, pScrn->display->virtualY,
-			 pAST->FbMapSize, LOOKUP_BEST_REFRESH);   
 
+   /* fixed some monitors can't get propery validate modes using estimated ratio modes */
+   if (i < 2)		/* validate modes are too few */
+   {
+       i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
+			     pScrn->display->modes, clockRanges,
+			     0, 320, maxPitch, 8 * pScrn->bitsPerPixel,
+			     200, maxHeight,
+			     pAST->mon_h_active, pAST->mon_v_active,
+			     pAST->FbMapSize, LOOKUP_BEST_REFRESH);  
+   }
+   
    if (i == -1) {
       ASTFreeRec(pScrn);
       return FALSE;
@@ -757,6 +772,11 @@ ASTScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
        FBMemBox.y1 = 0;
        FBMemBox.x2 = pScrn->displayWidth;
        FBMemBox.y2 = (AvailFBSize / (pScrn->displayWidth * ((pScrn->bitsPerPixel+1)/8))) - 1;
+
+       if (FBMemBox.y2 < 0) 
+           FBMemBox.y2 = 32767;
+       if (FBMemBox.y2 < pScrn->virtualY)
+           return FALSE;
 
        if (!xf86InitFBManager(pScreen, &FBMemBox)) {
           xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Failed to init memory manager\n");
@@ -1117,7 +1137,7 @@ ASTFreeRec(ScrnInfoPtr pScrn)
       return;
    if (!pScrn->driverPrivate)
       return;
-   xfree(pScrn->driverPrivate);
+   free(pScrn->driverPrivate);
    pScrn->driverPrivate = 0;
 }
 
@@ -1495,6 +1515,10 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
               }    
          
           }
+
+          /* save MonInfo to Private */
+          pAST->mon_h_active = MonInfo->det_mon[0].section.d_timings.h_active;
+          pAST->mon_v_active = MonInfo->det_mon[0].section.d_timings.v_active;
       
           xf86PrintEDID(MonInfo);
           xf86SetDDCproperties(pScrn, MonInfo);
@@ -2003,7 +2027,7 @@ static XF86VideoAdaptorPtr ASTSetupImageVideo(ScreenPtr pScreen)
     ASTPortPrivPtr pPriv;
   
 
-    if(!(adapt = xcalloc(1, sizeof(XF86VideoAdaptorRec) +
+    if(!(adapt = calloc(1, sizeof(XF86VideoAdaptorRec) +
                             sizeof(DevUnion) + 
                             sizeof(ASTPortPrivRec))))
         return NULL;
@@ -2094,7 +2118,7 @@ void ASTInitVideo(ScreenPtr pScreen)
         }
         else 
         {
-            newAdaptors = xalloc((num_adaptors + 1) * sizeof(XF86VideoAdaptorPtr*));
+            newAdaptors = malloc((num_adaptors + 1) * sizeof(XF86VideoAdaptorPtr*));
             if(newAdaptors) 
             {
                 memcpy(newAdaptors, adaptors, num_adaptors *
@@ -2110,7 +2134,7 @@ void ASTInitVideo(ScreenPtr pScreen)
         xf86XVScreenInit(pScreen, adaptors, num_adaptors);
 
     if(newAdaptors)
-        xfree(newAdaptors);
+        free(newAdaptors);
 
 }
 #endif /* AstVideo */

@@ -51,8 +51,14 @@
 /* H/W cursor support */
 #include "xf86Cursor.h"
 
+/* usleep() */
+#include <unistd.h>
+
 /* Driver specific headers */
 #include "ast.h"
+
+/* external reference fucntion */
+extern Bool bInitAST1180(ScrnInfoPtr pScrn);
 
 VBIOS_STDTABLE_STRUCT StdTable[] = {
     /* MD_2_3_400 */
@@ -795,8 +801,8 @@ void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
     /* Set Threshold */
     if (pAST->jChipType == AST2300)
     {
-        SetIndexReg(CRTC_PORT,0xA7, 0x6F);
-        SetIndexReg(CRTC_PORT,0xA6, 0x3F);    	    	
+        SetIndexReg(CRTC_PORT,0xA7, 0x78);
+        SetIndexReg(CRTC_PORT,0xA6, 0x60);    	    	
     }	    
     else if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST1100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2150) ) 
     {

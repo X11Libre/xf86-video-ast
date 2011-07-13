@@ -240,6 +240,9 @@ typedef struct _ASTRec {
     int			clip_right;    
     int			clip_bottom;    	
 
+    int			mon_h_active;		/* Monitor Info. */
+    int			mon_v_active;
+
 #ifdef AstVideo
     XF86VideoAdaptorPtr adaptor;
     Atom        	xvBrightness, xvContrast, xvColorKey, xvHue, xvSaturation;
