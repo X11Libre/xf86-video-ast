@@ -498,11 +498,20 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 	      (pScrn->chipset != NULL) ? pScrn->chipset : "Unknown ast");
 
    /* Resource Allocation */
+#if ABI_VIDEODRV_VERSION < 12
     pAST->IODBase = pScrn->domainIOBase;  
+#else
+    pAST->IODBase = 0;
+#endif
     /* "Patch" the PIOOffset inside vgaHW in order to force
      * the vgaHW module to use our relocated i/o ports.
      */
-    VGAHWPTR(pScrn)->PIOOffset = pAST->PIOOffset = pAST->IODBase + PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) - 0x380;
+
+#if ABI_VIDEODRV_VERSION < 12
+    VGAHWPTR(pScrn)->PIOOffset = /* ... */
+#endif
+       	pAST->PIOOffset =
+	pAST->IODBase + PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) - 0x380;
 	
     pAST->RelocateIO = (IOADDRESS)(PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) + pAST->IODBase);
 	
