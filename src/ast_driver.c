@@ -498,7 +498,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 	      (pScrn->chipset != NULL) ? pScrn->chipset : "Unknown ast");
 
    /* Resource Allocation */
-#if ABI_VIDEODRV_VERSION < 12
+#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 12
     pAST->IODBase = pScrn->domainIOBase;  
 #else
     pAST->IODBase = 0;
@@ -507,7 +507,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
      * the vgaHW module to use our relocated i/o ports.
      */
 
-#if ABI_VIDEODRV_VERSION < 12
+#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 12
     VGAHWPTR(pScrn)->PIOOffset = /* ... */
 #endif
        	pAST->PIOOffset =
