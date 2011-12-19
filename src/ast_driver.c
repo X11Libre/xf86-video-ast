@@ -692,11 +692,11 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pAST->pCMDQPtr = NULL;   
    pAST->CMDQInfo.ulCMDQSize = 0;      
 #ifdef	Accel_2D
-   if (!xf86ReturnOptValBool(pAST->Options, OPTION_NOACCEL, FALSE))
-   {
-       if (!xf86LoadSubModule(pScrn, "xaa")) {
-	   ASTFreeRec(pScrn);
-	   return FALSE;
+   if (!xf86ReturnOptValBool(pAST->Options, OPTION_NOACCEL, FALSE)) do {
+       if (!xf86LoadSubModule(pScrn, "xaa")) {\
+	   xf86DrvMsg(pScrn->scrnIndex, X_WARNING, "XAA not available\n");
+	   pAST->noAccel = TRUE;
+	   break;
        }       
        
        pAST->noAccel = FALSE; 
@@ -718,7 +718,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
        if (!xf86GetOptValInteger(pAST->Options, OPTION_DBG_SELECT, &pAST->DBGSelect)) {
            xf86DrvMsg(pScrn->scrnIndex, X_INFO, "No DBG Seleclt options found\n");      	
        }	       
-   }
+   } while (0);
 #endif   
 
    /* HW Cursor Check */
