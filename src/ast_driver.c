@@ -380,6 +380,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    if (!vgaHWGetHWRec(pScrn))
        return FALSE;
    hwp = VGAHWPTR(pScrn);
+   vgaHWSetStdFuncs(hwp);
 
    /* Color Depth Check */
    flags24 = Support32bppFb;
