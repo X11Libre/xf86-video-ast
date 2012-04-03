@@ -88,8 +88,18 @@ typedef CARD32  	ULONG;
 
 /* Data Structure Definition */
 typedef struct _ASTRegRec {
+	
     UCHAR 	ExtCRTC[0x50];
+
+    UCHAR 	MISC;	
+    UCHAR 	SEQ[4];
+    UCHAR 	CRTC[25];
+    UCHAR 	AR[20];	    
+    UCHAR 	GR[9];
+    UCHAR	DAC[256][3];
+ 
     ULONG	GFX[12];
+    
 } ASTRegRec, *ASTRegPtr;
 
 typedef struct _VIDEOMODE {
