@@ -295,6 +295,21 @@ ASTProbe(DriverPtr drv, int flags)
         for (i = 0; i < numUsed; i++) {
 	    ScrnInfoPtr pScrn = NULL;
 
+#ifdef XSERVER_LIBPCIACCESS
+            {
+                struct pci_device *pPci = xf86GetPciInfoForEntity(usedChips[i]);
+
+                if (pci_device_has_kernel_driver(pPci)) {
+                    xf86DrvMsg(0, X_ERROR,
+                               "ast: The PCI device 0x%x at %2.2d@%2.2d:%2.2d:%1.1d has a kernel module claiming it.\n",
+                               pPci->device_id, pPci->bus, pPci->domain, pPci->dev, pPci->func);
+                    xf86DrvMsg(0, X_ERROR,
+                               "cirrus: This driver cannot operate until it has been unloaded.\n");
+                    return FALSE;
+                }
+            }
+#endif
+
 	    /* Allocate new ScrnInfoRec and claim the slot */
 	    if ((pScrn = xf86ConfigPciEntity(pScrn, 0, usedChips[i],
 					     ASTPciChipsets, 0, 0, 0, 0, 0)))
