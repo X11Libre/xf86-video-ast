@@ -82,7 +82,7 @@ bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     if (!pAST->MMIO2D) {
         pAST->CMDQInfo.ulCMDQType = VM_CMD_QUEUE;	
        
-        pScreen = screenInfo.screens[pScrn->scrnIndex];
+        pScreen = xf86ScrnToScreen(pScrn);
       
         do {
             pAST->pCMDQPtr = xf86AllocateOffscreenLinear (pScreen, pAST->CMDQInfo.ulCMDQSize, 8, NULL, NULL, NULL);

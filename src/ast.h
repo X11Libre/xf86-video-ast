@@ -25,6 +25,8 @@
 
 #include "ast_pcirename.h"
 
+#include "compat-api.h"
+
 /* Compiler Options */
 #define	Accel_2D
 /* #define MMIO_2D */

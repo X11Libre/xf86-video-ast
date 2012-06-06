@@ -162,7 +162,7 @@ Bool
 ASTAccelInit(ScreenPtr pScreen)
 {
     XAAInfoRecPtr  infoPtr;
-    ScrnInfoPtr    pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr    pScrn = xf86ScreenToScrn(pScreen);
     ASTRecPtr      pAST = ASTPTR(pScrn);
 
     pAST->AccelInfoPtr = infoPtr = XAACreateInfoRec();
