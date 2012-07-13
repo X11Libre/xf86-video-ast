@@ -23,6 +23,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef HAVE_XAA_H
+#include "xaa.h"
+#endif
+
 #include "ast_pcirename.h"
 
 #include "compat-api.h"
@@ -204,7 +208,9 @@ typedef struct _ASTRec {
     OptionInfoPtr 	Options;
     DisplayModePtr      ModePtr;		    
     FBLinearPtr 	pCMDQPtr;    
+#ifdef HAVE_XAA_H
     XAAInfoRecPtr	AccelInfoPtr;
+#endif
     xf86CursorInfoPtr   HWCInfoPtr;
     FBLinearPtr 	pHWCPtr;    
 

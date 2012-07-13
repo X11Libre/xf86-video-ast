@@ -49,7 +49,6 @@
 #include "xf86fbman.h"
 
 /* include xaa includes */
-#include "xaa.h"
 #include "xaarop.h"
 
 /* H/W cursor support */
@@ -714,7 +713,9 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 
    /* Accelaration Check */
    pAST->noAccel = TRUE;
+#ifdef HAVE_XAA_H
    pAST->AccelInfoPtr = NULL; 
+#endif
    pAST->pCMDQPtr = NULL;   
    pAST->CMDQInfo.ulCMDQSize = 0;      
 #ifdef	Accel_2D
@@ -1246,11 +1247,12 @@ ASTCloseScreen(CLOSE_SCREEN_ARGS_DECL)
    vgaHWUnmapMem(pScrn);
 #endif
 
+#ifdef HAVE_XAA_H
    if(pAST->AccelInfoPtr) {
        XAADestroyInfoRec(pAST->AccelInfoPtr);
        pAST->AccelInfoPtr = NULL;
    }
-
+#endif
    if(pAST->HWCInfoPtr) {
        xf86DestroyCursorInfoRec(pAST->HWCInfoPtr);
        pAST->HWCInfoPtr = NULL;
