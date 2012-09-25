@@ -31,7 +31,6 @@
 #endif
 #include "xf86cmap.h"
 #include "compiler.h"
-#include "mibstore.h"
 #include "vgaHW.h"
 #include "mipointer.h"
 #include "micmap.h"
@@ -888,7 +887,6 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
    }
 #endif /* end of Accel_2D */
      
-   miInitializeBackingStore(pScreen);
    xf86SetBackingStore(pScreen);
    xf86SetSilkenMouse(pScreen);
 
