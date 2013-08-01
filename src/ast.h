@@ -40,11 +40,11 @@
 
 /* Vendor & Device Info */
 #ifndef PCI_VENDOR_AST
-#define PCI_VENDOR_AST			0x1A03	
-#endif	
+#define PCI_VENDOR_AST			0x1A03
+#endif
 
 #ifndef	PCI_CHIP_AST2000
-#define PCI_CHIP_AST2000		0x2000		
+#define PCI_CHIP_AST2000		0x2000
 #endif
 
 #ifndef	PCI_CHIP_AST2100
@@ -94,18 +94,18 @@ typedef CARD32  	ULONG;
 
 /* Data Structure Definition */
 typedef struct _ASTRegRec {
-	
+
     UCHAR 	ExtCRTC[0x50];
 
-    UCHAR 	MISC;	
+    UCHAR 	MISC;
     UCHAR 	SEQ[4];
     UCHAR 	CRTC[25];
-    UCHAR 	AR[20];	    
+    UCHAR 	AR[20];
     UCHAR 	GR[9];
     UCHAR	DAC[256][3];
- 
+
     ULONG	GFX[12];
-    
+
 } ASTRegRec, *ASTRegPtr;
 
 typedef struct _VIDEOMODE {
@@ -114,30 +114,30 @@ typedef struct _VIDEOMODE {
     int			ScreenHeight;
     int			bitsPerPixel;
     int			ScreenPitch;
-    	
+
 } VIDEOMODE, *PVIDEOMODE;
 
 typedef struct {
 
     ULONG		ulCMDQSize;
     ULONG		ulCMDQType;
-    
+
     ULONG		ulCMDQOffsetAddr;
     UCHAR       	*pjCMDQVirtualAddr;
-    
+
     UCHAR       	*pjCmdQBasePort;
-    UCHAR       	*pjWritePort;    
-    UCHAR       	*pjReadPort;     
+    UCHAR       	*pjWritePort;
+    UCHAR       	*pjReadPort;
     UCHAR       	*pjEngStatePort;
-          
+
     ULONG		ulCMDQMask;
     ULONG		ulCurCMDQueueLen;
-                
+
     ULONG		ulWritePointer;
     ULONG		ulReadPointer;
-    
+
     ULONG		ulReadPointer_OK;		/* for Eng_DBGChk */
-    
+
 } CMDQINFO, *PCMDQINFO;
 
 typedef struct {
@@ -147,17 +147,17 @@ typedef struct {
 
     ULONG		ulHWCOffsetAddr;
     UCHAR       	*pjHWCVirtualAddr;
-    
+
     USHORT		cursortype;
     USHORT		width;
-    USHORT   		height;   
+    USHORT   		height;
     USHORT		offset_x;
     USHORT   		offset_y;
     ULONG		fg;
     ULONG		bg;
 
-    UCHAR               cursorpattern[1024];    
-        
+    UCHAR               cursorpattern[1024];
+
 } HWCINFO, *PHWCINFO;
 
 typedef struct _ASTPortPrivRec{
@@ -177,7 +177,7 @@ typedef struct _ASTPortPrivRec{
     INT32           contrast;
     INT32           saturation;
     INT32           hue;
-    
+
     INT32           gammaR;
     INT32           gammaG;
     INT32           gammaB;
@@ -188,7 +188,7 @@ typedef struct _ASTPortPrivRec{
     CARD32          videoStatus;
     Time            offTime;
     Time            freeTime;
-	
+
     CARD32          displayMode;
 
     int             pitch;
@@ -196,9 +196,9 @@ typedef struct _ASTPortPrivRec{
 } ASTPortPrivRec, *ASTPortPrivPtr;
 
 typedef struct _ASTRec {
-	
+
     EntityInfoPtr 	pEnt;
-#ifndef XSERVER_LIBPCIACCESS	
+#ifndef XSERVER_LIBPCIACCESS
 	pciVideoPtr		PciInfo;
 	PCITAG			PciTag;
 #else
@@ -206,13 +206,13 @@ typedef struct _ASTRec {
 #endif
 
     OptionInfoPtr 	Options;
-    DisplayModePtr      ModePtr;		    
-    FBLinearPtr 	pCMDQPtr;    
+    DisplayModePtr      ModePtr;
+    FBLinearPtr 	pCMDQPtr;
 #ifdef HAVE_XAA_H
     XAAInfoRecPtr	AccelInfoPtr;
 #endif
     xf86CursorInfoPtr   HWCInfoPtr;
-    FBLinearPtr 	pHWCPtr;    
+    FBLinearPtr 	pHWCPtr;
 
     CloseScreenProcPtr CloseScreen;
     ScreenBlockHandlerProcPtr BlockHandler;
@@ -224,7 +224,7 @@ typedef struct _ASTRec {
     ULONG		ulVRAMSize;
     ULONG		ulVRAMBase;
     ULONG       ulMCLK;
-             
+
     Bool 		noAccel;
     Bool 		noHWC;
     Bool 		MMIO2D;
@@ -232,32 +232,32 @@ typedef struct _ASTRec {
     int			DBGSelect;
     Bool		VGA2Clone;
     Bool		SupportWideScreen;
-              	
+
     ULONG     		FBPhysAddr;		/* Frame buffer physical address     */
     ULONG     		MMIOPhysAddr;     	/* MMIO region physical address      */
     ULONG     		BIOSPhysAddr;     	/* BIOS physical address             */
-    
+
     UCHAR     		*FBVirtualAddr;   	/* Map of frame buffer               */
     UCHAR     		*MMIOVirtualAddr; 	/* Map of MMIO region                */
 
     unsigned long	FbMapSize;
     unsigned long	MMIOMapSize;
-       
+
     IOADDRESS		IODBase;        	/* Base of PIO memory area */
     IOADDRESS		PIOOffset;
     IOADDRESS		RelocateIO;
-    
+
     VIDEOMODE 		VideoModeInfo;
     ASTRegRec           SavedReg;
     CMDQINFO		CMDQInfo;
     HWCINFO    		HWCInfo;
-    ULONG		ulCMDReg;   
+    ULONG		ulCMDReg;
     Bool		EnableClip;
 
-    int			clip_left;    
+    int			clip_left;
     int			clip_top;
-    int			clip_right;    
-    int			clip_bottom;    	
+    int			clip_right;
+    int			clip_bottom;
 
     int			mon_h_active;		/* Monitor Info. */
     int			mon_v_active;

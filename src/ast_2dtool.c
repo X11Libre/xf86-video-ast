@@ -59,7 +59,7 @@ Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 Bool bEnableCMDQ2300(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 Bool bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-void vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST);    
+void vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 UCHAR *pjRequestCMDQ(ASTRecPtr pAST, ULONG   ulDataLen);
 Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam);
 
@@ -69,51 +69,51 @@ bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 
     ScreenPtr pScreen;
 
-    pAST->CMDQInfo.pjCmdQBasePort    = pAST->MMIOVirtualAddr+ 0x8044; 
+    pAST->CMDQInfo.pjCmdQBasePort    = pAST->MMIOVirtualAddr+ 0x8044;
     pAST->CMDQInfo.pjWritePort       = pAST->MMIOVirtualAddr+ 0x8048;
     pAST->CMDQInfo.pjReadPort        = pAST->MMIOVirtualAddr+ 0x804C;
     pAST->CMDQInfo.pjEngStatePort    = pAST->MMIOVirtualAddr+ 0x804C;
 
     /* CMDQ mode Init */
     if (!pAST->MMIO2D) {
-        pAST->CMDQInfo.ulCMDQType = VM_CMD_QUEUE;	
-       
+        pAST->CMDQInfo.ulCMDQType = VM_CMD_QUEUE;
+
         pScreen = xf86ScrnToScreen(pScrn);
-      
+
         do {
             pAST->pCMDQPtr = xf86AllocateOffscreenLinear (pScreen, pAST->CMDQInfo.ulCMDQSize, 8, NULL, NULL, NULL);
-            
+
             if (pAST->pCMDQPtr) break;
-            
+
             pAST->CMDQInfo.ulCMDQSize >>= 1;
-            
+
         } while (pAST->CMDQInfo.ulCMDQSize >= MIN_CMDQ_SIZE);
-        
+
         if (pAST->pCMDQPtr)
         {
            xf86DrvMsg(pScrn->scrnIndex, X_INFO,"Allocate CMDQ size is %ld kbyte \n", (unsigned long) (pAST->CMDQInfo.ulCMDQSize/1024));
-        	
+
            pAST->CMDQInfo.ulCMDQOffsetAddr  = pAST->pCMDQPtr->offset*((pScrn->bitsPerPixel + 1) / 8);
            pAST->CMDQInfo.pjCMDQVirtualAddr = pAST->FBVirtualAddr + pAST->CMDQInfo.ulCMDQOffsetAddr;
-           						 
+
            pAST->CMDQInfo.ulCurCMDQueueLen = pAST->CMDQInfo.ulCMDQSize - CMD_QUEUE_GUARD_BAND;
-           pAST->CMDQInfo.ulCMDQMask = pAST->CMDQInfo.ulCMDQSize - 1 ; 
-        	
-        }	
+           pAST->CMDQInfo.ulCMDQMask = pAST->CMDQInfo.ulCMDQSize - 1 ;
+
+        }
         else
-        {   		  
+        {
            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,"Allocate CMDQ failed \n");
            pAST->MMIO2D = TRUE;		/* set to MMIO mode if CMDQ allocate failed */
-        }	
-        						  
+        }
+
     }
-    
-    /* MMIO mode init */  
-    if (pAST->MMIO2D) {    	
-        pAST->CMDQInfo.ulCMDQType = VM_CMD_MMIO;    	
+
+    /* MMIO mode init */
+    if (pAST->MMIO2D) {
+        pAST->CMDQInfo.ulCMDQType = VM_CMD_MMIO;
     }
-       
-    return (TRUE);	
+
+    return (TRUE);
 }
 
 Bool
@@ -121,65 +121,65 @@ bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulVMCmdQBasePort = 0;
 
-    vWaitEngIdle(pScrn, pAST);  
+    vWaitEngIdle(pScrn, pAST);
 
     /* set DBG Select Info */
     if (pAST->DBGSelect)
     {
-        *(ULONG *) (pAST->MMIOVirtualAddr + 0x804C) = (ULONG) (pAST->DBGSelect);             	
+        *(ULONG *) (pAST->MMIOVirtualAddr + 0x804C) = (ULONG) (pAST->DBGSelect);
     }
-    
+
     /* set CMDQ base */
     switch (pAST->CMDQInfo.ulCMDQType)
     {
     case VM_CMD_QUEUE:
         ulVMCmdQBasePort  = (pAST->CMDQInfo.ulCMDQOffsetAddr - 0) >> 3;
- 
+
         /* set CMDQ Threshold */
-        ulVMCmdQBasePort |= 0xF0000000;			   
+        ulVMCmdQBasePort |= 0xF0000000;
 
         /* set CMDQ Size */
         switch (pAST->CMDQInfo.ulCMDQSize)
         {
         case CMD_QUEUE_SIZE_256K:
-            ulVMCmdQBasePort |= 0x00000000;   
+            ulVMCmdQBasePort |= 0x00000000;
             break;
-        	
+
         case CMD_QUEUE_SIZE_512K:
-            ulVMCmdQBasePort |= 0x04000000;   
+            ulVMCmdQBasePort |= 0x04000000;
             break;
-      
+
         case CMD_QUEUE_SIZE_1M:
-            ulVMCmdQBasePort |= 0x08000000;       
+            ulVMCmdQBasePort |= 0x08000000;
             break;
-            
+
         case CMD_QUEUE_SIZE_2M:
-            ulVMCmdQBasePort |= 0x0C000000;       
-            break;        
-            
+            ulVMCmdQBasePort |= 0x0C000000;
+            break;
+
         default:
             return(FALSE);
             break;
-        }     
-                                 
-        *(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) = ulVMCmdQBasePort;         
+        }
+
+        *(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) = ulVMCmdQBasePort;
         pAST->CMDQInfo.ulWritePointer = *(ULONG *) (pAST->CMDQInfo.pjWritePort) << 3;
         break;
-        
+
     case VM_CMD_MMIO:
         /* set CMDQ Threshold */
-        ulVMCmdQBasePort |= 0xF0000000;			   
-    
+        ulVMCmdQBasePort |= 0xF0000000;
+
         ulVMCmdQBasePort |= 0x02000000;			/* MMIO mode */
-        *(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) = ulVMCmdQBasePort;                 		       
+        *(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) = ulVMCmdQBasePort;
         break;
-        
+
     default:
         return (FALSE);
         break;
     }
 
-    return (TRUE);	
+    return (TRUE);
 }
 
 Bool
@@ -187,14 +187,14 @@ bEnableCMDQ2300(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulVMCmdQBasePort = 0, ulNewModeData;
 
-    vWaitEngIdle(pScrn, pAST);  
+    vWaitEngIdle(pScrn, pAST);
 
     /* set DBG Select Info */
     if (pAST->DBGSelect)
     {
-        *(ULONG *) (pAST->MMIOVirtualAddr + 0x804C) = (ULONG) (pAST->DBGSelect);             	
+        *(ULONG *) (pAST->MMIOVirtualAddr + 0x804C) = (ULONG) (pAST->DBGSelect);
     }
-    
+
     /* set CMDQ base */
     switch (pAST->CMDQInfo.ulCMDQType)
     {
@@ -205,46 +205,46 @@ bEnableCMDQ2300(ScrnInfoPtr pScrn, ASTRecPtr pAST)
         switch (pAST->CMDQInfo.ulCMDQSize)
         {
         case CMD_QUEUE_SIZE_256K:
-            ulNewModeData |= 0x00000000;   
+            ulNewModeData |= 0x00000000;
             break;
-        	
+
         case CMD_QUEUE_SIZE_512K:
-            ulNewModeData |= 0x00000004;   
+            ulNewModeData |= 0x00000004;
             break;
-      
+
         case CMD_QUEUE_SIZE_1M:
-            ulNewModeData |= 0x00000008;       
+            ulNewModeData |= 0x00000008;
             break;
-            
+
         case CMD_QUEUE_SIZE_2M:
-            ulNewModeData |= 0x0000000C;       
-            break;        
-            
+            ulNewModeData |= 0x0000000C;
+            break;
+
         default:
             return(FALSE);
             break;
-        }     
+        }
         *(ULONG *) (pAST->MMIOVirtualAddr + 0x8060) = ulNewModeData;
 
-        /* Set CMDQ Base */   
-        ulVMCmdQBasePort  = (pAST->CMDQInfo.ulCMDQOffsetAddr - 0) >> 3;                                 
-        *(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) = ulVMCmdQBasePort;         
-        pAST->CMDQInfo.ulWritePointer = *(ULONG *) (pAST->CMDQInfo.pjWritePort) << 3;                 
+        /* Set CMDQ Base */
+        ulVMCmdQBasePort  = (pAST->CMDQInfo.ulCMDQOffsetAddr - 0) >> 3;
+        *(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) = ulVMCmdQBasePort;
+        pAST->CMDQInfo.ulWritePointer = *(ULONG *) (pAST->CMDQInfo.pjWritePort) << 3;
         break;
-        
+
     case VM_CMD_MMIO:
         /* enable new CMDQ mode */
         ulNewModeData = 0xc00000f2;
         *(ULONG *) (pAST->MMIOVirtualAddr + 0x8060) = ulNewModeData;
         break;
-        
+
     default:
         return (FALSE);
         break;
     }
 
     return (TRUE);
-    	
+
 } /* bEnableCMDQ2300 */
 
 Bool
@@ -252,54 +252,54 @@ bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulData;
     PFN_bENABLE_CMDQ pfnEnableCMDQ = bEnableCMDQ;
-    
+
     if (pAST->jChipType == AST2300)
         pfnEnableCMDQ = bEnableCMDQ2300;
-        	
+
     switch (pAST->jChipType)
     {
     case AST2100:
     case AST1100:
     case AST2200:
     case AST2150:
-    case AST2300:            
+    case AST2300:
        *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
-       *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;        
-       
+       *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
+
        ulData = *(ULONG *) (pAST->MMIOVirtualAddr + 0x1200c);
        *(ULONG *) (pAST->MMIOVirtualAddr + 0x1200c) = (ulData & 0xFFFFFFFD);
 
-    case AST2000:                          
-       SetIndexRegMask(CRTC_PORT, 0xA4, 0xFE, 0x01);		/* enable 2D */  
-       
+    case AST2000:
+       SetIndexRegMask(CRTC_PORT, 0xA4, 0xFE, 0x01);		/* enable 2D */
+
        break;
     }
-   
+
     if (!bInitCMDQInfo(pScrn, pAST))
     {
-        vDisable2D(pScrn, pAST);  	
+        vDisable2D(pScrn, pAST);
     	return (FALSE);
     }
-        
+
     if (!pfnEnableCMDQ(pScrn, pAST))
     {
-        vDisable2D(pScrn, pAST);  	
+        vDisable2D(pScrn, pAST);
     	return (FALSE);
     }
-            
-    return (TRUE);	
+
+    return (TRUE);
 }
 
 void
 vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
-	
+
     vWaitEngIdle(pScrn, pAST);
     vWaitEngIdle(pScrn, pAST);
 
     if (pAST->jChipType != AST1180)
-        SetIndexRegMask(CRTC_PORT, 0xA4, 0xFE, 0x00);		  
-	
+        SetIndexRegMask(CRTC_PORT, 0xA4, 0xFE, 0x00);
+
 }
 
 
@@ -308,9 +308,9 @@ vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulEngState, ulEngState2;
     UCHAR jReg;
-    ULONG ulEngCheckSetting; 
-    
-    if (pAST->MMIO2D)     
+    ULONG ulEngCheckSetting;
+
+    if (pAST->MMIO2D)
         ulEngCheckSetting = 0x10000000;
     else
         ulEngCheckSetting = 0x80000000;
@@ -319,15 +319,15 @@ vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     {
 
         /* 2D disable if 0xA4 D[0] = 1 */
-        GetIndexRegMask(CRTC_PORT, 0xA4, 0x01, jReg);  
+        GetIndexRegMask(CRTC_PORT, 0xA4, 0x01, jReg);
         if (!jReg) goto Exit_vWaitEngIdle;
-    
+
         /* 2D not work if in std. mode */
-        GetIndexRegMask(CRTC_PORT, 0xA3, 0x0F, jReg);  
+        GetIndexRegMask(CRTC_PORT, 0xA3, 0x0F, jReg);
         if (!jReg) goto Exit_vWaitEngIdle;
     }
 
-    do  
+    do
     {
         ulEngState = (*(volatile ULONG *)(pAST->CMDQInfo.pjEngStatePort)) & 0xFFFC0000;
         ulEngState2 = (*(volatile ULONG *)(pAST->CMDQInfo.pjEngStatePort)) & 0xFFFC0000;
@@ -335,25 +335,25 @@ vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
         ulEngState2 = (*(volatile ULONG *)(pAST->CMDQInfo.pjEngStatePort)) & 0xFFFC0000;
         ulEngState2 = (*(volatile ULONG *)(pAST->CMDQInfo.pjEngStatePort)) & 0xFFFC0000;
         ulEngState2 = (*(volatile ULONG *)(pAST->CMDQInfo.pjEngStatePort)) & 0xFFFC0000;
-                      
+
     } while ((ulEngState & ulEngCheckSetting) || (ulEngState != ulEngState2));
-    
+
 Exit_vWaitEngIdle:
-    ;   	
-}    
+    ;
+}
 
 /* ULONG ulGetCMDQLength() */
 static __inline ULONG ulGetCMDQLength(ASTRecPtr pAST, ULONG ulWritePointer, ULONG ulCMDQMask)
 {
     ULONG ulReadPointer, ulReadPointer2;
-    
+
     do {
-        ulReadPointer  = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;    	
+        ulReadPointer  = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
         ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
         ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
         ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
         ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
-        ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;        
+        ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
      } while (ulReadPointer != ulReadPointer2);
 
     return ((ulReadPointer << 3) - ulWritePointer - CMD_QUEUE_GUARD_BAND) & ulCMDQMask;
@@ -367,34 +367,34 @@ ASTRecPtr pAST, ULONG   ulDataLen)
 
     ulWritePointer = pAST->CMDQInfo.ulWritePointer;
     ulContinueCMDQLen = pAST->CMDQInfo.ulCMDQSize - ulWritePointer;
-    ulCMDQMask = pAST->CMDQInfo.ulCMDQMask;        
-    
+    ulCMDQMask = pAST->CMDQInfo.ulCMDQMask;
+
     if (ulContinueCMDQLen >= ulDataLen)
     {
-        /* Get CMDQ Buffer */            	
+        /* Get CMDQ Buffer */
         if (pAST->CMDQInfo.ulCurCMDQueueLen >= ulDataLen)
         {
         	;
         }
         else
         {
-           
+
             do
             {
                 ulCurCMDQLen = ulGetCMDQLength(pAST, ulWritePointer, ulCMDQMask);
             } while (ulCurCMDQLen < ulDataLen);
-            
+
             pAST->CMDQInfo.ulCurCMDQueueLen = ulCurCMDQLen;
 
         }
-        
+
         pjBuffer = pAST->CMDQInfo.pjCMDQVirtualAddr + ulWritePointer;
-        pAST->CMDQInfo.ulCurCMDQueueLen -= ulDataLen;            
+        pAST->CMDQInfo.ulCurCMDQueueLen -= ulDataLen;
         pAST->CMDQInfo.ulWritePointer = (ulWritePointer + ulDataLen) & ulCMDQMask;
-        return pjBuffer;            
+        return pjBuffer;
     }
     else
-    {   
+    {
 
         /* Fill NULL CMD to the last of the CMDQ */
         if (pAST->CMDQInfo.ulCurCMDQueueLen >= ulContinueCMDQLen)
@@ -403,87 +403,87 @@ ASTRecPtr pAST, ULONG   ulDataLen)
         }
         else
         {
-           
+
             do
             {
                 ulCurCMDQLen = ulGetCMDQLength(pAST, ulWritePointer, ulCMDQMask);
             } while (ulCurCMDQLen < ulContinueCMDQLen);
-            
+
             pAST->CMDQInfo.ulCurCMDQueueLen = ulCurCMDQLen;
 
         }
-    
+
         pjBuffer = pAST->CMDQInfo.pjCMDQVirtualAddr + ulWritePointer;
         for (i = 0; i<ulContinueCMDQLen/8; i++, pjBuffer+=8)
         {
             *(ULONG *)pjBuffer = (ULONG) PKT_NULL_CMD;
             *(ULONG *) (pjBuffer+4) = 0;
-            
+
         }
         pAST->CMDQInfo.ulCurCMDQueueLen -= ulContinueCMDQLen;
         pAST->CMDQInfo.ulWritePointer = ulWritePointer = 0;
-            
-        /* Get CMDQ Buffer */    
+
+        /* Get CMDQ Buffer */
         if (pAST->CMDQInfo.ulCurCMDQueueLen >= ulDataLen)
         {
-	        ;	
+	        ;
         }
         else
         {
-           
+
             do
             {
                 ulCurCMDQLen = ulGetCMDQLength(pAST, ulWritePointer, ulCMDQMask);
             } while (ulCurCMDQLen < ulDataLen);
-            
+
             pAST->CMDQInfo.ulCurCMDQueueLen = ulCurCMDQLen;
 
         }
-        
+
         pAST->CMDQInfo.ulCurCMDQueueLen -= ulDataLen;
         pjBuffer = pAST->CMDQInfo.pjCMDQVirtualAddr + ulWritePointer;
         pAST->CMDQInfo.ulWritePointer = (ulWritePointer + ulDataLen) & ulCMDQMask;
-        return pjBuffer;            
-        
+        return pjBuffer;
+
     }
-   
+
 } /* end of pjRequestCmdQ() */
 
 Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
 {
     LONG GAbsX, GAbsY, GXInc, GYInc, GXMajor;
     LONG MM, mm, Error0, K1, K2;
-            	
+
     /* Init */
-#ifdef LONG64    
+#ifdef LONG64
     GAbsX = abs (LineInfo->X1 - LineInfo->X2);
     GAbsY = abs (LineInfo->Y1 - LineInfo->Y2);
 #else
     GAbsX = labs (LineInfo->X1 - LineInfo->X2);
     GAbsY = labs (LineInfo->Y1 - LineInfo->Y2);
-#endif    
+#endif
 
     GXInc = (LineInfo->X1 < LineInfo->X2) ? 1:0;
     GYInc = (LineInfo->Y1 < LineInfo->Y2) ? 1:0;
     GXMajor = (GAbsX >= GAbsY) ? 1:0;
-   
+
     /* Calculate */
     if (GXMajor)
     {
         MM = GAbsX;
-        mm = GAbsY;	        	
+        mm = GAbsY;
     }
     else
     {
         MM = GAbsY;
-        mm = GAbsX;	        	    	
+        mm = GAbsX;
     }
 
     Error0 = (signed) (2*mm - MM);
-    	
+
     K1 = 2* mm;
     K2 = (signed) (2*mm - 2*MM);
-    
+
     /*save the Param to dsLineParam */
     dsLineParam->dsLineX = (USHORT) LineInfo->X1;
     dsLineParam->dsLineY = (USHORT) LineInfo->Y1;
@@ -496,9 +496,9 @@ Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
     if (GXMajor) dsLineParam->dwLineAttributes |= LINEPARAM_XM;
     if (!GXInc) dsLineParam->dwLineAttributes |= LINEPARAM_X_DEC;
     if (!GYInc) dsLineParam->dwLineAttributes |= LINEPARAM_Y_DEC;
-    
+
     return(TRUE);
-    
+
 }
 #endif	/* end of Accel_2D */
 
