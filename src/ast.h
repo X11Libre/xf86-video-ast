@@ -223,7 +223,7 @@ typedef struct _ASTRec {
     ULONG		ulDRAMSize;
     ULONG		ulVRAMSize;
     ULONG		ulVRAMBase;
-    ULONG               ulMCLK;
+    ULONG       ulMCLK;
              
     Bool 		noAccel;
     Bool 		noHWC;
@@ -231,6 +231,7 @@ typedef struct _ASTRec {
     int			ENGCaps;
     int			DBGSelect;
     Bool		VGA2Clone;
+    Bool		SupportWideScreen;
               	
     ULONG     		FBPhysAddr;		/* Frame buffer physical address     */
     ULONG     		MMIOPhysAddr;     	/* MMIO region physical address      */

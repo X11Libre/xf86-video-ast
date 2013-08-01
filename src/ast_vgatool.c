@@ -61,6 +61,7 @@ void GetDRAMInfo(ScrnInfoPtr pScrn);
 ULONG GetVRAMInfo(ScrnInfoPtr pScrn);
 ULONG GetMaxDCLK(ScrnInfoPtr pScrn);
 void GetChipType(ScrnInfoPtr pScrn);
+void GetScratchOptions(ScrnInfoPtr pScrn);
 void vAST1000DisplayOn(ASTRecPtr pAST);
 void vAST1000DisplayOff(ASTRecPtr pAST);
 void ASTBlankScreen(ScrnInfoPtr pScrn, Bool unblack);
@@ -282,13 +283,7 @@ GetChipType(ScrnInfoPtr pScrn)
 
    *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
    *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;        
-
    ulData = *(ULONG *) (pAST->MMIOVirtualAddr + 0x1207c);       
-   
-#if 0   
-   if ((ulData & 0x0300) == 0x0200)
-       pAST->jChipType = AST1100;   
-#endif       
    switch (ulData & 0x0300)
    {
    case 0x0200:
@@ -307,13 +302,51 @@ GetChipType(ScrnInfoPtr pScrn)
        xf86DrvMsg(pScrn->scrnIndex, X_INFO, "AST2100 Detected.\n");   
        pAST->jChipType = AST2100;
    }	
-       
+
+}
+
+void
+GetScratchOptions(ScrnInfoPtr pScrn)
+{
+   ASTRecPtr pAST = ASTPTR(pScrn);
+   ULONG ulData;
+   UCHAR jReg;
+   
    /* VGA2 Clone Support */    
    GetIndexRegMask(CRTC_PORT, 0x90, 0xFF, jReg);
    if (jReg & 0x10)
        pAST->VGA2Clone = TRUE;
-          
-}
+ 
+   /* WideScreen Support */
+   switch (pAST->jChipType)
+   {
+   case AST1180:
+       pAST->SupportWideScreen = TRUE;
+       break; 	  
+   case AST2000:
+       pAST->SupportWideScreen = FALSE;
+       break;
+   default:
+       GetIndexRegMask(CRTC_PORT, 0xD0, 0xFF, jReg);
+       if (!(jReg & 0x80))
+           pAST->SupportWideScreen = TRUE;
+       else if (jReg & 0x01)    
+           pAST->SupportWideScreen = TRUE;
+       else
+       {
+           pAST->SupportWideScreen = FALSE;
+           if (pAST->jChipType == AST2300)	/* for AST1300 */
+           {
+               *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
+               *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;        
+               ulData = *(ULONG *) (pAST->MMIOVirtualAddr + 0x1207c);       
+               if ((ulData & 0x0300) == 0)	/* AST1300 */
+                   pAST->SupportWideScreen = TRUE;              
+           }        
+       }	              
+    } /* switch case */
+       
+} /* GetScratchOptions */
 
 void
 vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base)

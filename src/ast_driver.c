@@ -67,6 +67,7 @@ extern void GetDRAMInfo(ScrnInfoPtr pScrn);
 extern ULONG GetVRAMInfo(ScrnInfoPtr pScrn);
 extern ULONG GetMaxDCLK(ScrnInfoPtr pScrn);
 extern void GetChipType(ScrnInfoPtr pScrn);
+extern void GetScratchOptions(ScrnInfoPtr pScrn);
 extern void vASTLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices, LOCO *colors, VisualPtr pVisual);
 extern void ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags);
 extern void vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
@@ -619,6 +620,9 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
        else
            pAST->jChipType = AST2000;
 
+       /* Get Options from Scratch */
+       GetScratchOptions(pScrn);
+
        /* Get DRAM Info */
        GetDRAMInfo(pScrn);     
        pAST->ulVRAMSize = GetVRAMInfo(pScrn);        
@@ -1092,17 +1096,8 @@ ASTValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode, Bool verbose, int flags)
    if (RequestBufferSize > pAST->ulVRAMSize)
       return Flags;
    
-   /* Check BMC scratch for iKVM compatible */
-   if (pAST->jChipType == AST2000)
-       jReg = 0x80;
-   else if (pAST->jChipType == AST1180)        
-       jReg = 0x01;
-   else    
-   {
-       GetIndexRegMask(CRTC_PORT, 0xD0, 0xFF, jReg);
-   }		
-   
-   if ( !(jReg & 0x80) || (jReg & 0x01) )   
+   /* Valid Wide Screen Mode */
+   if (pAST->SupportWideScreen)   
    {
       if ( (mode->CrtcHDisplay == 1680) && (mode->CrtcVDisplay == 1050) )
           return MODE_OK;
@@ -1110,27 +1105,27 @@ ASTValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode, Bool verbose, int flags)
           return MODE_OK;
       if ( (mode->CrtcHDisplay == 1440) && (mode->CrtcVDisplay == 900) )
           return MODE_OK;
+      if ( (mode->CrtcHDisplay == 1360) && (mode->CrtcVDisplay == 768) )
+          return MODE_OK;
+      if ( (mode->CrtcHDisplay == 1600) && (mode->CrtcVDisplay == 900) )
+          return MODE_OK;
           
       if ( (pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180) )	
       {
           if ( (mode->CrtcHDisplay == 1920) && (mode->CrtcVDisplay == 1080) )
               return MODE_OK;
+              
+          if ( (mode->CrtcHDisplay == 1920) && (mode->CrtcVDisplay == 1200) )
+          {
+             GetIndexRegMask(CRTC_PORT, 0xD1, 0xFF, jReg);
+	     if (jReg & 0x01)
+	        return MODE_NOMODE;
+	     else    
+                return MODE_OK;
+          }                  
       }
    }	
-   
-   /* Add for AST2100, ycchen@061807 */
-   if ( (pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180) )	
-   {
-       if ( (mode->CrtcHDisplay == 1920) && (mode->CrtcVDisplay == 1200) )
-       {
-           GetIndexRegMask(CRTC_PORT, 0xD1, 0xFF, jReg);
-	   if (jReg & 0x01)
-	       return MODE_NOMODE;
-	   else    
-               return MODE_OK;
-       }    
-  }
-     
+
    switch (mode->CrtcHDisplay)
    {
    case 640:
@@ -1478,6 +1473,13 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
       if (Flags)
       {	
           MonInfo = MonInfo1 = xf86InterpretEDID(pScrn->scrnIndex, DDC_data);
+          
+          /* Valid Wide Screen Support */
+          if ( (MonInfo) && (MonInfo->det_mon[0].type == 0x00) )
+          {
+	          if ( (MonInfo->det_mon[0].section.d_timings.h_active * 10 / MonInfo->det_mon[0].section.d_timings.v_active) < 14 )
+                  pAST->SupportWideScreen = FALSE;	          
+          }                            
       }
        
       /* For VGA2 CLONE Support, ycchen@012508 */
