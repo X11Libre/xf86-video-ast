@@ -277,7 +277,6 @@ GetChipType(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
    ULONG ulData;
-   UCHAR jReg;
 
    pAST->jChipType = AST2100;
 
@@ -760,8 +759,14 @@ void vSetDefExtReg(ScrnInfoPtr pScrn)
 
 __inline ULONG MIndwm(UCHAR *mmiobase, ULONG r)
 {
+    ULONG ulData;
+
     *(ULONG *) (mmiobase + 0xF004) = r & 0xFFFF0000;
     *(ULONG *) (mmiobase + 0xF000) = 0x1;
+
+    do {
+        ulData = *(volatile ULONG *) (mmiobase + 0xF004) & 0xFFFF0000;
+    } while (ulData != (r & 0xFFFF0000) );
 
     return ( *(volatile ULONG *) (mmiobase + 0x10000 + (r & 0x0000FFFF)) );
 
@@ -769,9 +774,14 @@ __inline ULONG MIndwm(UCHAR *mmiobase, ULONG r)
 
 __inline void MOutdwm(UCHAR *mmiobase, ULONG r, ULONG v)
 {
+    ULONG ulData;
 
     *(ULONG *) (mmiobase + 0xF004) = r & 0xFFFF0000;
     *(ULONG *) (mmiobase + 0xF000) = 0x1;
+
+    do {
+        ulData = *(volatile ULONG *) (mmiobase + 0xF004) & 0xFFFF0000;
+    } while (ulData != (r & 0xFFFF0000) );
 
     *(volatile ULONG *) (mmiobase + 0x10000 + (r & 0x0000FFFF)) = v;
 }
@@ -1228,6 +1238,7 @@ typedef struct _AST2300DRAMParam {
 /*
  * DQSI DLL CBR Setting
  */
+#define CBR_SIZE0            ((1  << 10) - 1)
 #define CBR_SIZE1            ((4  << 10) - 1)
 #define CBR_SIZE2            ((64 << 10) - 1)
 #define CBR_PASSNUM          5
@@ -1427,102 +1438,33 @@ ULONG CBRScan2(PAST2300DRAMParam  param)
   return(data2);
 }
 
-void finetuneDQI(PAST2300DRAMParam  param)
+ULONG CBRTest3(PAST2300DRAMParam  param)
 {
-  ULONG gold_sadj[2], dllmin[16], dllmax[16], dlli, data, cnt, mask, passcnt;
+  if(!MMCTestBurst(param, 0)) return(0);
+  if(!MMCTestSingle(param, 0)) return(0);
+  return(1);
+}
+
+ULONG CBRScan3(PAST2300DRAMParam  param)
+{
+  ULONG patcnt, loop;
   UCHAR *mmiobase;
 
   mmiobase = param->pjMMIOVirtualAddress;
 
-  gold_sadj[0] = (MIndwm(mmiobase, 0x1E6E0024) >> 16) & 0xffff;
-  gold_sadj[1] = gold_sadj[0] >> 8;
-  gold_sadj[0] = gold_sadj[0] & 0xff;
-  gold_sadj[0] = (gold_sadj[0] + gold_sadj[1]) >> 1;
-  gold_sadj[1] = gold_sadj[0];
-
-  for(cnt = 0;cnt < 16;cnt++){
-    dllmin[cnt] = 0xff;
-    dllmax[cnt] = 0x0;
-  }
-  passcnt = 0;
-  for(dlli = 0;dlli < 76;dlli++){
-    MOutdwm(mmiobase, 0x1E6E0068, 0x00001400 | (dlli << 16) | (dlli << 24));
-    /* Wait DQSI latch phase calibration */
-    MOutdwm(mmiobase, 0x1E6E0074, 0x00000010);
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000003);
-    do{
-      data = MIndwm(mmiobase, 0x1E6E0070);
-    }while(!(data & 0x00001000));
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000000);
-
-    MOutdwm(mmiobase, 0x1E6E0074, CBR_SIZE1);
-    data = CBRScan2(param);
-    if(data != 0){
-      mask = 0x00010001;
-      for(cnt = 0;cnt < 16;cnt++){
-        if(data & mask){
-          if(dllmin[cnt] > dlli){
-            dllmin[cnt] = dlli;
-          }
-          if(dllmax[cnt] < dlli){
-            dllmax[cnt] = dlli;
-          }
-        }
-        mask <<= 1;
+  for(patcnt = 0;patcnt < CBR_PATNUM;patcnt++){
+    MOutdwm(mmiobase, 0x1E6E007C, pattern[patcnt]);
+    for(loop = 0;loop < 2;loop++){
+      if(CBRTest3(param)){
+        break;
       }
-      passcnt++;
-    }else if(passcnt >= CBR_THRESHOLD){
-      break;
+    }
+    if(loop == 2){
+      return(0);
     }
   }
-  data = 0;
-  for(cnt = 0;cnt < 8;cnt++){
-    data >>= 3;
-    if((dllmax[cnt] > dllmin[cnt]) && ((dllmax[cnt] - dllmin[cnt]) >= CBR_THRESHOLD)){
-      dlli = (dllmin[cnt] + dllmax[cnt]) >> 1;
-      if(gold_sadj[0] >= dlli){
-        dlli = (gold_sadj[0] - dlli) >> 1;
-        if(dlli > 3){
-          dlli = 3;
-        }
-      }else{
-        dlli = (dlli - gold_sadj[0]) >> 1;
-        if(dlli > 4){
-          dlli = 4;
-        }
-        dlli = (8 - dlli) & 0x7;
-      }
-      data |= dlli << 21;
-    }
-  }
-  MOutdwm(mmiobase, 0x1E6E0080, data);
-
-  data = 0;
-  for(cnt = 8;cnt < 16;cnt++){
-    data >>= 3;
-    if((dllmax[cnt] > dllmin[cnt]) && ((dllmax[cnt] - dllmin[cnt]) >= CBR_THRESHOLD)){
-      dlli = (dllmin[cnt] + dllmax[cnt]) >> 1;
-      if(gold_sadj[1] >= dlli){
-        dlli = (gold_sadj[1] - dlli) >> 1;
-        if(dlli > 3){
-          dlli = 3;
-        }else{
-          dlli = (dlli - 1) & 0x7;
-        }
-      }else{
-        dlli = (dlli - gold_sadj[1]) >> 1;
-        dlli += 1;
-        if(dlli > 4){
-          dlli = 4;
-        }
-        dlli = (8 - dlli) & 0x7;
-      }
-      data |= dlli << 21;
-    }
-  }
-  MOutdwm(mmiobase, 0x1E6E0084, data);
-
-} /* finetuneDQI */
+  return(1);
+}
 
 Bool finetuneDQI_L(PAST2300DRAMParam  param)
 {
@@ -1540,14 +1482,6 @@ Bool finetuneDQI_L(PAST2300DRAMParam  param)
   passcnt = 0;
   for(dlli = 0;dlli < 76;dlli++){
     MOutdwm(mmiobase, 0x1E6E0068, 0x00001400 | (dlli << 16) | (dlli << 24));
-    /* Wait DQSI latch phase calibration */
-    MOutdwm(mmiobase, 0x1E6E0074, 0x00000010);
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000003);
-    do{
-      data = MIndwm(mmiobase, 0x1E6E0070);
-    }while(!(data & 0x00001000));
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000000);
-
     MOutdwm(mmiobase, 0x1E6E0074, CBR_SIZE1);
     data = CBRScan2(param);
     if(data != 0){
@@ -1638,137 +1572,107 @@ FINETUNE_DONE:
 
 } /* finetuneDQI_L */
 
-void finetuneDQI_L2(PAST2300DRAMParam  param)
+void finetuneDQSI(PAST2300DRAMParam  param)
 {
-  ULONG gold_sadj[2], dllmin[16], dllmax[16], dlli, data, cnt, mask, passcnt, data2;
+  ULONG dlli, dqsip, dqidly, cnt;
+  ULONG reg_mcr18, reg_mcr0c, passcnt[2], diff;
+  ULONG g_dqidly, g_dqsip, g_margin, g_side;
+  unsigned short pass[32][2][2];
+  char tag[2][76];
   UCHAR *mmiobase;
 
   mmiobase = param->pjMMIOVirtualAddress;
 
-  for(cnt = 0;cnt < 16;cnt++){
-    dllmin[cnt] = 0xff;
-    dllmax[cnt] = 0x0;
-  }
-  passcnt = 0;
+  /* Disable DQI CBR */
+  reg_mcr0c  = MIndwm(mmiobase, 0x1E6E000C);
+  reg_mcr18  = MIndwm(mmiobase, 0x1E6E0018);
+  reg_mcr18 &= 0x0000ffff;
+  MOutdwm(mmiobase, 0x1E6E0018, reg_mcr18);
+
   for(dlli = 0;dlli < 76;dlli++){
-    MOutdwm(mmiobase, 0x1E6E0068, 0x00001400 | (dlli << 16) | (dlli << 24));
-    /* Wait DQSI latch phase calibration */
-    MOutdwm(mmiobase, 0x1E6E0074, 0x00000010);
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000003);
-    do{
-      data = MIndwm(mmiobase, 0x1E6E0070);
-    }while(!(data & 0x00001000));
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000000);
-
-    MOutdwm(mmiobase, 0x1E6E0074, CBR_SIZE2);
-    data = CBRScan2(param);
-    if(data != 0){
-      mask = 0x00010001;
-      for(cnt = 0;cnt < 16;cnt++){
-        if(data & mask){
-          if(dllmin[cnt] > dlli){
-            dllmin[cnt] = dlli;
+    tag[0][dlli] = 0x0;
+    tag[1][dlli] = 0x0;
+  }
+  for(dqidly = 0;dqidly < 32;dqidly++){
+    pass[dqidly][0][0] = 0xff;
+    pass[dqidly][0][1] = 0x0;
+    pass[dqidly][1][0] = 0xff;
+    pass[dqidly][1][1] = 0x0;
+  }
+  for(dqidly = 0;dqidly < 32;dqidly++){
+    passcnt[0] = passcnt[1] = 0;
+    for(dqsip = 0;dqsip < 2;dqsip++){
+      MOutdwm(mmiobase, 0x1E6E000C, 0);
+      MOutdwm(mmiobase, 0x1E6E0018, reg_mcr18 | (dqidly << 16) | (dqsip << 23));
+      MOutdwm(mmiobase, 0x1E6E000C, reg_mcr0c);
+      for(dlli = 0;dlli < 76;dlli++){
+        MOutdwm(mmiobase, 0x1E6E0068, 0x00001300 | (dlli << 16) | (dlli << 24));
+        MOutdwm(mmiobase, 0x1E6E0070, 0);
+        MOutdwm(mmiobase, 0x1E6E0074, CBR_SIZE0);
+        if(CBRScan3(param)){
+          if(dlli == 0){
+            break;
           }
-          if(dllmax[cnt] < dlli){
-            dllmax[cnt] = dlli;
+          passcnt[dqsip]++;
+          tag[dqsip][dlli] = 'P';
+          if(dlli < pass[dqidly][dqsip][0]){
+            pass[dqidly][dqsip][0] = (USHORT) dlli;
           }
+          if(dlli > pass[dqidly][dqsip][1]){
+            pass[dqidly][dqsip][1] = (USHORT) dlli;
+          }
+        }else if(passcnt[dqsip] >= 5){
+          break;
+        }else{
+          pass[dqidly][dqsip][0] = 0xff;
+          pass[dqidly][dqsip][1] = 0x0;
         }
-        mask <<= 1;
-      }
-      passcnt++;
-    }else if(passcnt >= CBR_THRESHOLD2){
-      break;
-    }
-  }
-  gold_sadj[0] = 0x0;
-  gold_sadj[1] = 0xFF;
-  for(cnt = 0;cnt < 8;cnt++){
-    if((dllmax[cnt] > dllmin[cnt]) && ((dllmax[cnt] - dllmin[cnt]) >= CBR_THRESHOLD2)){
-      if(gold_sadj[0] < dllmin[cnt]){
-        gold_sadj[0] = dllmin[cnt];
-      }
-      if(gold_sadj[1] > dllmax[cnt]){
-        gold_sadj[1] = dllmax[cnt];
       }
     }
+    if(passcnt[0] == 0 && passcnt[1] == 0){
+      dqidly++;
+    }
   }
-  gold_sadj[0] = (gold_sadj[1] + gold_sadj[0]) >> 1;
-  gold_sadj[1] = MIndwm(mmiobase, 0x1E6E0080);
+  /* Search margin */
+  g_dqidly = g_dqsip = g_margin = g_side = 0;
 
-  data = 0;
-  for(cnt = 0;cnt < 8;cnt++){
-    data >>= 3;
-    data2 = gold_sadj[1] & 0x7;
-    gold_sadj[1] >>= 3;
-    if((dllmax[cnt] > dllmin[cnt]) && ((dllmax[cnt] - dllmin[cnt]) >= CBR_THRESHOLD2)){
-      dlli = (dllmin[cnt] + dllmax[cnt]) >> 1;
-      if(gold_sadj[0] >= dlli){
-        dlli = (gold_sadj[0] - dlli) >> 1;
-        if(dlli > 0){
-          dlli = 1;
-        }
-        if(data2 != 3){
-          data2 = (data2 + dlli) & 0x7;
-        }
-      }else{
-        dlli = (dlli - gold_sadj[0]) >> 1;
-        if(dlli > 0){
-          dlli = 1;
-        }
-        if(data2 != 4){
-          data2 = (data2 - dlli) & 0x7;
-        }
+  for(dqidly = 0;dqidly < 32;dqidly++){
+    for(dqsip = 0;dqsip < 2;dqsip++){
+      if(pass[dqidly][dqsip][0] > pass[dqidly][dqsip][1]){
+        continue;
       }
-    }
-    data |= data2 << 21;
-  }
-  MOutdwm(mmiobase, 0x1E6E0080, data);
-
-  gold_sadj[0] = 0x0;
-  gold_sadj[1] = 0xFF;
-  for(cnt = 8;cnt < 16;cnt++){
-    if((dllmax[cnt] > dllmin[cnt]) && ((dllmax[cnt] - dllmin[cnt]) >= CBR_THRESHOLD2)){
-      if(gold_sadj[0] < dllmin[cnt]){
-        gold_sadj[0] = dllmin[cnt];
+      diff = pass[dqidly][dqsip][1] - pass[dqidly][dqsip][0];
+      if((diff+2) < g_margin){
+        continue;
       }
-      if(gold_sadj[1] > dllmax[cnt]){
-        gold_sadj[1] = dllmax[cnt];
+      passcnt[0] = passcnt[1] = 0;
+      for(dlli = pass[dqidly][dqsip][0];dlli > 0  && tag[dqsip][dlli] != 0;dlli--,passcnt[0]++);
+      for(dlli = pass[dqidly][dqsip][1];dlli < 76 && tag[dqsip][dlli] != 0;dlli++,passcnt[1]++);
+      if(passcnt[0] > passcnt[1]){
+        passcnt[0] = passcnt[1];
+      }
+      passcnt[1] = 0;
+      if(passcnt[0] > g_side){
+        passcnt[1] = passcnt[0] - g_side;
+      }
+      if(diff > (g_margin+1) && (passcnt[1] > 0 || passcnt[0] > 8)){
+        g_margin = diff;
+        g_dqidly = dqidly;
+        g_dqsip  = dqsip;
+        g_side   = passcnt[0];
+      }else if(passcnt[1] > 1 && g_side < 8){
+        if(diff > g_margin){
+          g_margin = diff;
+        }
+        g_dqidly = dqidly;
+        g_dqsip  = dqsip;
+        g_side   = passcnt[0];
       }
     }
   }
-  gold_sadj[0] = (gold_sadj[1] + gold_sadj[0]) >> 1;
-  gold_sadj[1] = MIndwm(mmiobase, 0x1E6E0084);
-
-  data = 0;
-  for(cnt = 8;cnt < 16;cnt++){
-    data >>= 3;
-    data2 = gold_sadj[1] & 0x7;
-    gold_sadj[1] >>= 3;
-    if((dllmax[cnt] > dllmin[cnt]) && ((dllmax[cnt] - dllmin[cnt]) >= CBR_THRESHOLD2)){
-      dlli = (dllmin[cnt] + dllmax[cnt]) >> 1;
-      if(gold_sadj[0] >= dlli){
-        dlli = (gold_sadj[0] - dlli) >> 1;
-        if(dlli > 0){
-          dlli = 1;
-        }
-        if(data2 != 3){
-          data2 = (data2 + dlli) & 0x7;
-        }
-      }else{
-        dlli = (dlli - gold_sadj[0]) >> 1;
-        if(dlli > 0){
-          dlli = 1;
-        }
-        if(data2 != 4){
-          data2 = (data2 - dlli) & 0x7;
-        }
-      }
-    }
-    data |= data2 << 21;
-  }
-  MOutdwm(mmiobase, 0x1E6E0084, data);
-
-} /* finetuneDQI_L2 */
+  reg_mcr18 = reg_mcr18 | (g_dqidly << 16) | (g_dqsip << 23);
+  MOutdwm(mmiobase, 0x1E6E0018, reg_mcr18);
+} /* finetuneDQSI */
 
 Bool CBRDLL2(PAST2300DRAMParam  param)
 {
@@ -1778,9 +1682,9 @@ Bool CBRDLL2(PAST2300DRAMParam  param)
 
   mmiobase = param->pjMMIOVirtualAddress;
 
+  finetuneDQSI(param);
   if (finetuneDQI_L(param) == FALSE)
       return status;
-  finetuneDQI_L2(param);
 
   CBR_START2:
   dllmin[0] = dllmin[1] = 0xff;
@@ -1788,14 +1692,6 @@ Bool CBRDLL2(PAST2300DRAMParam  param)
   passcnt = 0;
   for(dlli = 0;dlli < 76;dlli++){
     MOutdwm(mmiobase, 0x1E6E0068, 0x00001300 | (dlli << 16) | (dlli << 24));
-    /* Wait DQSI latch phase calibration */
-    MOutdwm(mmiobase, 0x1E6E0074, 0x00000010);
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000003);
-    do{
-      data = MIndwm(mmiobase, 0x1E6E0070);
-    }while(!(data & 0x00001000));
-    MOutdwm(mmiobase, 0x1E6E0070, 0x00000000);
-
     MOutdwm(mmiobase, 0x1E6E0074, CBR_SIZE2);
     data = CBRScan(param);
     if(data != 0){
@@ -1834,24 +1730,7 @@ CBR_DONE2:
   dlli  = (dllmin[1] + dllmax[1]) >> 1;
   dlli <<= 8;
   dlli += (dllmin[0] + dllmax[0]) >> 1;
-  MOutdwm(mmiobase, 0x1E6E0068, (MIndwm(mmiobase, 0x1E6E0068) & 0xFFFF) | (dlli << 16));
-
-  data  = (MIndwm(mmiobase, 0x1E6E0080) >> 24) & 0x1F;
-  data2 = (MIndwm(mmiobase, 0x1E6E0018) & 0xff80ffff) | (data << 16);
-  MOutdwm(mmiobase, 0x1E6E0018, data2);
-
-  /* Wait DQSI latch phase calibration */
-  MOutdwm(mmiobase, 0x1E6E0074, 0x00000010);
-  MOutdwm(mmiobase, 0x1E6E0070, 0x00000003);
-  do{
-    data = MIndwm(mmiobase, 0x1E6E0070);
-  }while(!(data & 0x00001000));
-  MOutdwm(mmiobase, 0x1E6E0070, 0x00000000);
-  MOutdwm(mmiobase, 0x1E6E0070, 0x00000003);
-  do{
-    data = MIndwm(mmiobase, 0x1E6E0070);
-  }while(!(data & 0x00001000));
-  MOutdwm(mmiobase, 0x1E6E0070, 0x00000000);
+  MOutdwm(mmiobase, 0x1E6E0068, MIndwm(mmiobase, 0x1E720058) | (dlli << 16));
 
   return status;
 
@@ -1937,7 +1816,7 @@ void GetDDR2Info(PAST2300DRAMParam param)
                param->REG_DRV       = 0x000000FA;
                param->REG_IOZ       = 0x00000034;
                param->REG_DQIDLY    = 0x00000089;
-               param->REG_FREQ      = 0x000050C0;
+               param->REG_FREQ      = 0x00005040;
                param->MADJ_MAX      = 96;
                param->DLL2_FINETUNE_STEP = 4;
 
@@ -2134,7 +2013,7 @@ void GetDDR3Info(PAST2300DRAMParam param)
                param->REG_DQSIC     = 0x000000BA;
                param->REG_MRS       = 0x04001400 | TRAP_MRS;
                param->REG_EMRS      = 0x00000000;
-               param->REG_IOZ       = 0x00000024;
+               param->REG_IOZ       = 0x00000023;
                param->REG_DQIDLY    = 0x00000074;
                param->REG_FREQ      = 0x00004DC0;
                param->MADJ_MAX      = 96;
@@ -2164,10 +2043,10 @@ void GetDDR3Info(PAST2300DRAMParam param)
                param->REG_DQSIC     = 0x000000E2;
                param->REG_MRS       = 0x04001600 | TRAP_MRS;
                param->REG_EMRS      = 0x00000000;
-               param->REG_IOZ       = 0x00000034;
+               param->REG_IOZ       = 0x00000023;
                param->REG_DRV       = 0x000000FA;
                param->REG_DQIDLY    = 0x00000089;
-               param->REG_FREQ      = 0x000050C0;
+               param->REG_FREQ      = 0x00005040;
                param->MADJ_MAX      = 96;
                param->DLL2_FINETUNE_STEP = 4;
 
@@ -2195,7 +2074,7 @@ void GetDDR3Info(PAST2300DRAMParam param)
                param->REG_DQSIC     = 0x000000E2;
                param->REG_MRS       = 0x04001600 | TRAP_MRS;
                param->REG_EMRS      = 0x00000000;
-               param->REG_IOZ       = 0x00000034;
+               param->REG_IOZ       = 0x00000023;
                param->REG_DRV       = 0x000000FA;
                param->REG_DQIDLY    = 0x00000089;
                param->REG_FREQ      = 0x000050C0;
@@ -2375,8 +2254,8 @@ DDR2_Init_Start:
   MOutdwm(mmiobase, 0x1E6E0080, 0x00000000);
   MOutdwm(mmiobase, 0x1E6E0084, 0x00FFFFFF);
   MOutdwm(mmiobase, 0x1E6E0088, param->REG_DQIDLY);
-  MOutdwm(mmiobase, 0x1E6E0018, 0x4040A130);
-  MOutdwm(mmiobase, 0x1E6E0018, 0x20402330);
+  MOutdwm(mmiobase, 0x1E6E0018, 0x4000A130);
+  MOutdwm(mmiobase, 0x1E6E0018, 0x00002330);
   MOutdwm(mmiobase, 0x1E6E0038, 0x00000000);
   MOutdwm(mmiobase, 0x1E6E0040, 0xFF808000);
   MOutdwm(mmiobase, 0x1E6E0044, 0x88848466);
@@ -2396,11 +2275,6 @@ DDR2_Init_Start:
   do{
     data = MIndwm(mmiobase, 0x1E6E001C);
   }while(!(data & 0x08000000));
-  MOutdwm(mmiobase, 0x1E6E0034, 0x00000001);
-  MOutdwm(mmiobase, 0x1E6E000C, 0x00005C04);
-  usleep(10);
-  MOutdwm(mmiobase, 0x1E6E000C, 0x00000000);
-  MOutdwm(mmiobase, 0x1E6E0034, 0x00000000);
   data = MIndwm(mmiobase, 0x1E6E001C);
   data = (data >> 8) & 0xff;
   while((data & 0x08) || ((data & 0x7) < 2) || (data < 4)){
@@ -2429,14 +2303,10 @@ DDR2_Init_Start:
       data = MIndwm(mmiobase, 0x1E6E001C);
     }while(!(data & 0x08000000));
 
-    MOutdwm(mmiobase, 0x1E6E0034, 0x00000001);
-    MOutdwm(mmiobase, 0x1E6E000C, 0x00005C04);
-    usleep(10);
-    MOutdwm(mmiobase, 0x1E6E000C, 0x00000000);
-    MOutdwm(mmiobase, 0x1E6E0034, 0x00000000);
     data = MIndwm(mmiobase, 0x1E6E001C);
     data = (data >> 8) & 0xff;
   }
+  MOutdwm(mmiobase, 0x1E720058, MIndwm(mmiobase, 0x1E6E0068) & 0xffff);
   data = MIndwm(mmiobase, 0x1E6E0018) | 0xC00;
   MOutdwm(mmiobase, 0x1E6E0018, data);
 
@@ -2469,14 +2339,6 @@ DDR2_Init_Start:
   MOutdwm(mmiobase, 0x1E6E0034, data | 0x3);
   MOutdwm(mmiobase, 0x1E6E0120, param->REG_FREQ);
 
-  /* Wait DQI delay lock */
-  do{
-    data = MIndwm(mmiobase, 0x1E6E0080);
-  }while(!(data & 0x40000000));
-  /* Wait DQSI delay lock */
-  do{
-    data = MIndwm(mmiobase, 0x1E6E0020);
-  }while(!(data & 0x00000800));
   /* Calibrate the DQSI delay */
   if ((CBRDLL2(param)==FALSE) && (retry++ < 10))
       goto DDR2_Init_Start;
@@ -2523,8 +2385,8 @@ DDR3_Init_Start:
   MOutdwm(mmiobase, 0x1E6E0080, 0x00000000);
   MOutdwm(mmiobase, 0x1E6E0084, 0x00FFFFFF);
   MOutdwm(mmiobase, 0x1E6E0088, param->REG_DQIDLY);
-  MOutdwm(mmiobase, 0x1E6E0018, 0x4040A170);
-  MOutdwm(mmiobase, 0x1E6E0018, 0x20402370);
+  MOutdwm(mmiobase, 0x1E6E0018, 0x4000A170);
+  MOutdwm(mmiobase, 0x1E6E0018, 0x00002370);
   MOutdwm(mmiobase, 0x1E6E0038, 0x00000000);
   MOutdwm(mmiobase, 0x1E6E0040, 0xFF444444);
   MOutdwm(mmiobase, 0x1E6E0044, 0x22222222);
@@ -2544,11 +2406,6 @@ DDR3_Init_Start:
   do{
     data = MIndwm(mmiobase, 0x1E6E001C);
   }while(!(data & 0x08000000));
-  MOutdwm(mmiobase, 0x1E6E0034, 0x00000001);
-  MOutdwm(mmiobase, 0x1E6E000C, 0x00005C04);
-  usleep(10);
-  MOutdwm(mmiobase, 0x1E6E000C, 0x00000000);
-  MOutdwm(mmiobase, 0x1E6E0034, 0x00000000);
   data = MIndwm(mmiobase, 0x1E6E001C);
   data = (data >> 8) & 0xff;
   while((data & 0x08) || ((data & 0x7) < 2) || (data < 4)){
@@ -2577,14 +2434,10 @@ DDR3_Init_Start:
       data = MIndwm(mmiobase, 0x1E6E001C);
     }while(!(data & 0x08000000));
 
-    MOutdwm(mmiobase, 0x1E6E0034, 0x00000001);
-    MOutdwm(mmiobase, 0x1E6E000C, 0x00005C04);
-    usleep(10);
-    MOutdwm(mmiobase, 0x1E6E000C, 0x00000000);
-    MOutdwm(mmiobase, 0x1E6E0034, 0x00000000);
     data = MIndwm(mmiobase, 0x1E6E001C);
     data = (data >> 8) & 0xff;
   }
+  MOutdwm(mmiobase, 0x1E720058, MIndwm(mmiobase, 0x1E6E0068) & 0xffff);
   data = MIndwm(mmiobase, 0x1E6E0018) | 0xC00;
   MOutdwm(mmiobase, 0x1E6E0018, data);
 
@@ -2602,7 +2455,7 @@ DDR3_Init_Start:
   MOutdwm(mmiobase, 0x1E6E000C, 0x00005C08);
   MOutdwm(mmiobase, 0x1E6E0028, 0x00000001);
 
-  MOutdwm(mmiobase, 0x1E6E000C, 0x7FFF5C01);
+  MOutdwm(mmiobase, 0x1E6E000C, 0x00005C01);
   data = 0;
   if(param->WODT){
     data = 0x300;
@@ -2612,14 +2465,6 @@ DDR3_Init_Start:
   }
   MOutdwm(mmiobase, 0x1E6E0034, data | 0x3);
 
-  /* Wait DQI delay lock */
-  do{
-    data = MIndwm(mmiobase, 0x1E6E0080);
-  }while(!(data & 0x40000000));
-  /* Wait DQSI delay lock */
-  do{
-    data = MIndwm(mmiobase, 0x1E6E0020);
-  }while(!(data & 0x00000800));
   /* Calibrate the DQSI delay */
   if ((CBRDLL2(param)==FALSE) && (retry++ < 10))
       goto DDR3_Init_Start;
