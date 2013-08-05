@@ -1005,7 +1005,10 @@ ASTEnterVT(VT_FUNC_ARGS_DECL)
        if (pAST->jChipType == AST1180)
            bInitAST1180(pScrn);
        else
+       {
+           vEnableASTVGAMMIO(pScrn);
            InitVGA(pScrn, 1);
+       }
        ASTRestore(pScrn);
    }
 
@@ -1340,6 +1343,8 @@ ASTRestore(ScrnInfoPtr pScrn)
 
    pAST = ASTPTR(pScrn);
    astReg = &pAST->SavedReg;
+
+   ASTDisplayPowerManagementSet(pScrn, DPMSModeOff, 0);
 
    if (pAST->jChipType == AST1180)
    {

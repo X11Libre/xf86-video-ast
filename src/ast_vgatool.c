@@ -660,15 +660,13 @@ Bool bIsVGAEnabled(ScrnInfoPtr pScrn)
     }
     else
     {
+        ch = inb(pAST->RelocateIO + 0x43);
 
-        ch = GetReg(VGA_ENABLE_PORT);
-
-        if (ch)
+        if (ch == 0x01)
         {
-
-            vASTOpenKey(pScrn);
-
-            GetIndexRegMask(CRTC_PORT, 0xB6, 0xFF, ch);
+            outw(pAST->RelocateIO + 0x54, 0xa880);
+            outb(pAST->RelocateIO + 0x54, 0xb6);
+	    ch = inb(pAST->RelocateIO + 0x55);
 
             return (ch & 0x04);
         }
@@ -2978,7 +2976,8 @@ void vEnableASTVGAMMIO(ScrnInfoPtr pScrn)
     ULONG ulData;
     UCHAR jReg;
 
-    if (!xf86IsPrimaryPci(pAST->PciInfo))
+    jReg = inb(pAST->RelocateIO + 0x43);
+    if (jReg != 0x01)
     {
        /* Enable PCI */
        PCI_READ_LONG(pAST->PciInfo, &ulData, 0x04);
