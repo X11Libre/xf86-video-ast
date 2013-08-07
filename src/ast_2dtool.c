@@ -69,11 +69,6 @@ bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 
     ScreenPtr pScreen;
 
-    pAST->CMDQInfo.pjCmdQBasePort    = pAST->MMIOVirtualAddr+ 0x8044;
-    pAST->CMDQInfo.pjWritePort       = pAST->MMIOVirtualAddr+ 0x8048;
-    pAST->CMDQInfo.pjReadPort        = pAST->MMIOVirtualAddr+ 0x804C;
-    pAST->CMDQInfo.pjEngStatePort    = pAST->MMIOVirtualAddr+ 0x804C;
-
     /* CMDQ mode Init */
     if (!pAST->MMIO2D) {
         pAST->CMDQInfo.ulCMDQType = VM_CMD_QUEUE;
@@ -297,9 +292,19 @@ vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     vWaitEngIdle(pScrn, pAST);
     vWaitEngIdle(pScrn, pAST);
 
+    /* restore 2D settings */
     if (pAST->jChipType != AST1180)
-        SetIndexRegMask(CRTC_PORT, 0xA4, 0xFE, 0x00);
-
+    {
+        if (pAST->SavedReg.REGA4 & 0x01)	/* 2D enabled */
+        {
+            SetIndexRegMask(CRTC_PORT, 0xA4, 0xFE, 0x01);
+            *(ULONG *) (pAST->MMIOVirtualAddr + 0x8044) = pAST->SavedReg.ENG8044;
+        }
+        else								/* 2D disabled */
+        {
+            SetIndexRegMask(CRTC_PORT, 0xA4, 0xFE, 0x00);
+        }
+    }
 }
 
 
@@ -308,12 +313,7 @@ vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulEngState, ulEngState2;
     UCHAR jReg;
-    ULONG ulEngCheckSetting;
-
-    if (pAST->MMIO2D)
-        ulEngCheckSetting = 0x10000000;
-    else
-        ulEngCheckSetting = 0x80000000;
+    ULONG ulEngCheckSetting = 0x80000000;
 
     if (pAST->jChipType != AST1180)
     {
@@ -326,6 +326,9 @@ vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
         GetIndexRegMask(CRTC_PORT, 0xA3, 0x0F, jReg);
         if (!jReg) goto Exit_vWaitEngIdle;
     }
+
+    if (*(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) & 0x02000000)	/* MMIO Mode */
+        ulEngCheckSetting = 0x10000000;
 
     do
     {
@@ -348,13 +351,13 @@ static __inline ULONG ulGetCMDQLength(ASTRecPtr pAST, ULONG ulWritePointer, ULON
     ULONG ulReadPointer, ulReadPointer2;
 
     do {
-        ulReadPointer  = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
-        ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
-        ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
-        ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
-        ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
-        ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort)) & 0x0003FFFF;
-     } while (ulReadPointer != ulReadPointer2);
+	ulReadPointer  = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort));
+	ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort));
+	ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort));
+	ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort));
+	ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort));
+	ulReadPointer2 = *((volatile ULONG *)(pAST->CMDQInfo.pjReadPort));
+     } while ( ((ulReadPointer & 0x0003FFFF) != (ulReadPointer2 & 0x0003FFFF)) || (ulReadPointer == 0xFFFFEEEE) );
 
     return ((ulReadPointer << 3) - ulWritePointer - CMD_QUEUE_GUARD_BAND) & ulCMDQMask;
 }

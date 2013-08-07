@@ -47,7 +47,10 @@
 #include "xf86fbman.h"
 
 /* include xaa includes */
+#ifdef HAVE_XAA_H
+#include "xaa.h"
 #include "xaarop.h"
+#endif
 
 /* H/W cursor support */
 #include "xf86Cursor.h"
@@ -86,7 +89,9 @@ extern Bool bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 
+#ifdef HAVE_XAA_H
 extern Bool ASTAccelInit(ScreenPtr pScreen);
+#endif
 
 extern Bool ASTCursorInit(ScreenPtr pScreen);
 extern void ASTDisableHWC(ScrnInfoPtr pScrn);
@@ -715,11 +720,14 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 
    /* Accelaration Check */
    pAST->noAccel = TRUE;
+   pAST->pCMDQPtr = NULL;
+   pAST->CMDQInfo.ulCMDQSize 		= 0;
+   pAST->CMDQInfo.pjCmdQBasePort    = pAST->MMIOVirtualAddr+ 0x8044;
+   pAST->CMDQInfo.pjWritePort       = pAST->MMIOVirtualAddr+ 0x8048;
+   pAST->CMDQInfo.pjReadPort        = pAST->MMIOVirtualAddr+ 0x804C;
+   pAST->CMDQInfo.pjEngStatePort    = pAST->MMIOVirtualAddr+ 0x804C;
 #ifdef HAVE_XAA_H
    pAST->AccelInfoPtr = NULL;
-#endif
-   pAST->pCMDQPtr = NULL;
-   pAST->CMDQInfo.ulCMDQSize = 0;
 #ifdef	Accel_2D
    if (!xf86ReturnOptValBool(pAST->Options, OPTION_NOACCEL, FALSE))
    {
@@ -746,6 +754,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
        }
    }
 #endif
+#endif /* HAVE_XAA_H */
 
    /* HW Cursor Check */
    pAST->noHWC = TRUE;
@@ -881,6 +890,7 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
 
    xf86SetBlackWhitePixels(pScreen);
 
+#ifdef HAVE_XAA_H      
 #ifdef Accel_2D
    if (!pAST->noAccel)
    {
@@ -890,6 +900,7 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
        }
    }
 #endif /* end of Accel_2D */
+#endif
 
    xf86SetBackingStore(pScreen);
    xf86SetSilkenMouse(pScreen);
@@ -1329,6 +1340,12 @@ ASTSave(ScrnInfoPtr pScrn)
        /* Save DAC */
        for (i=0; i<256; i++)
            VGA_GET_PALETTE_INDEX (i, astReg->DAC[i][0], astReg->DAC[i][1], astReg->DAC[i][2]);
+
+       /* Save 2D */
+       astReg->ENG8044 = 0;
+       GetIndexReg(CRTC_PORT, 0xA4, astReg->REGA4);
+       if (astReg->REGA4 & 0x01)	/* 2D enabled */
+           astReg->ENG8044 = *(ULONG *) (pAST->MMIOVirtualAddr + 0x8044);
    }
 
 }
@@ -1403,16 +1420,16 @@ ASTRestore(ScrnInfoPtr pScrn)
       /* Ext. restore */
       vASTOpenKey(pScrn);
 
+       /* Restore DAC */
+       for (i=0; i<256; i++)
+          VGA_LOAD_PALETTE_INDEX (i, astReg->DAC[i][0], astReg->DAC[i][1], astReg->DAC[i][2]);
+      
       /* fixed Console Switch Refresh Rate Incorrect issue, ycchen@051106 */
       for (i=0x81; i<=0xB6; i++)
           SetIndexReg(CRTC_PORT, (UCHAR) (i), astReg->ExtCRTC[icount++]);
       for (i=0xBC; i<=0xC1; i++)
           SetIndexReg(CRTC_PORT, (UCHAR) (i), astReg->ExtCRTC[icount++]);
       SetIndexReg(CRTC_PORT, (UCHAR) (0xBB), astReg->ExtCRTC[icount]);
-
-       /* Restore DAC */
-       for (i=0; i<256; i++)
-          VGA_LOAD_PALETTE_INDEX (i, astReg->DAC[i][0], astReg->DAC[i][1], astReg->DAC[i][2]);
    }
 
 }

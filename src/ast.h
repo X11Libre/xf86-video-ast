@@ -106,6 +106,8 @@ typedef struct _ASTRegRec {
 
     ULONG	GFX[12];
 
+    UCHAR	REGA4;
+    ULONG   ENG8044;
 } ASTRegRec, *ASTRegPtr;
 
 typedef struct _VIDEOMODE {

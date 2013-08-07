@@ -45,8 +45,8 @@
 /* include xaa includes */
 #ifdef HAVE_XAA_H
 #include "xaa.h"
-#endif
 #include "xaarop.h"
+#endif
 
 /* H/W cursor support */
 #include "xf86Cursor.h"
@@ -55,6 +55,8 @@
 #include "ast.h"
 
 #ifdef	Accel_2D
+
+#ifdef HAVE_XAA_H
 /* ROP Translation Table */
 int ASTXAACopyROP[16] =
 {
@@ -103,7 +105,6 @@ extern Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam);
 
 /* Prototype type declaration */
 Bool ASTAccelInit(ScreenPtr pScreen);
-#ifdef HAVE_XAA_H
 static void ASTSync(ScrnInfoPtr pScrn);
 static void ASTSetupForScreenToScreenCopy(ScrnInfoPtr pScrn,
                                           int xdir, int ydir, int rop,
@@ -158,12 +159,10 @@ static void AIPSubsequentSolidTwoPointLine(ScrnInfoPtr pScrn,
 static void AIPSubsequentDashedTwoPointLine(ScrnInfoPtr pScrn,
                                             int x1, int y1, int x2, int y2,
                                             int flags, int phase);
-#endif
 
 Bool
 ASTAccelInit(ScreenPtr pScreen)
 {
-#ifdef HAVE_XAA_H
     XAAInfoRecPtr  infoPtr;
     ScrnInfoPtr    pScrn = xf86ScreenToScrn(pScreen);
     ASTRecPtr      pAST = ASTPTR(pScrn);
@@ -286,12 +285,9 @@ ASTAccelInit(ScreenPtr pScreen)
     }
 
     return(XAAInit(pScreen, infoPtr));
-#else
-    return TRUE;
-#endif
+
 } /* end of ASTAccelInit */
 
-#ifdef HAVE_XAA_H
 static void
 ASTSync(ScrnInfoPtr pScrn)
 {
@@ -802,7 +798,7 @@ static void ASTSubsequentSolidTwoPointLine(ScrnInfoPtr pScrn,
 
     }
 
-                
+
 } /* end of ASTSubsequentSolidTwoPointLine */
 
 /* Dash Line */
@@ -1036,7 +1032,7 @@ ASTSetupForMonoPatternFill(ScrnInfoPtr pScrn,
 
 } /* end of ASTSetupForMonoPatternFill */
 
-                      
+
 static void
 ASTSubsequentMonoPatternFill(ScrnInfoPtr pScrn,
                              int patx, int paty,
@@ -1495,7 +1491,7 @@ ASTSubsequentScreenToScreenColorExpandFill(ScrnInfoPtr pScrn,
 
 }
 
-	  
+
 /* Clipping */
 static void
 ASTSetHWClipping(ScrnInfoPtr pScrn, int delta_y)
@@ -1618,7 +1614,7 @@ static void AIPSubsequentSolidTwoPointLine(ScrnInfoPtr pScrn,
 
     }
 
-                
+
 } /* end of AIPSubsequentSolidTwoPointLine */
 
 static void
@@ -1689,7 +1685,7 @@ AIPSubsequentDashedTwoPointLine(ScrnInfoPtr pScrn,
     }
 
 }
-#endif
+#endif	/* HAVE_XAA_H */
 
 #ifdef	AstVideo
 /*
