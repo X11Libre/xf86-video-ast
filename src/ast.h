@@ -19,6 +19,13 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+/* Compiler Options */
+#define	Accel_2D
+/* #define MMIO_2D */
+#define HWC
+#define AstVideo
+/* #define PATCH_ABI_VERSION */
+#define Support_ShadowFB
 
 #include <string.h>
 #include <stdlib.h>
@@ -31,12 +38,9 @@
 
 #include "compat-api.h"
 
-/* Compiler Options */
-#define	Accel_2D
-/* #define MMIO_2D */
-#define HWC
-#define AstVideo
-/* #define PATCH_ABI_VERSION */
+#ifdef	Support_ShadowFB
+#include "shadow.h"
+#endif
 
 /* Vendor & Device Info */
 #ifndef PCI_VENDOR_AST
@@ -107,7 +111,7 @@ typedef struct _ASTRegRec {
     ULONG	GFX[12];
 
     UCHAR	REGA4;
-    ULONG   ENG8044;
+    ULONG	ENG8044;
 } ASTRegRec, *ASTRegPtr;
 
 typedef struct _VIDEOMODE {
@@ -125,12 +129,12 @@ typedef struct {
     ULONG		ulCMDQType;
 
     ULONG		ulCMDQOffsetAddr;
-    UCHAR       	*pjCMDQVirtualAddr;
+    UCHAR       *pjCMDQVirtualAddr;
 
-    UCHAR       	*pjCmdQBasePort;
-    UCHAR       	*pjWritePort;
-    UCHAR       	*pjReadPort;
-    UCHAR       	*pjEngStatePort;
+    UCHAR       *pjCmdQBasePort;
+    UCHAR       *pjWritePort;
+    UCHAR       *pjReadPort;
+    UCHAR       *pjEngStatePort;
 
     ULONG		ulCMDQMask;
     ULONG		ulCurCMDQueueLen;
@@ -148,17 +152,17 @@ typedef struct {
     int			HWC_NUM_Next;
 
     ULONG		ulHWCOffsetAddr;
-    UCHAR       	*pjHWCVirtualAddr;
+    UCHAR       *pjHWCVirtualAddr;
 
     USHORT		cursortype;
     USHORT		width;
-    USHORT   		height;
+    USHORT   	height;
     USHORT		offset_x;
-    USHORT   		offset_y;
+    USHORT   	offset_y;
     ULONG		fg;
     ULONG		bg;
 
-    UCHAR               cursorpattern[1024];
+    UCHAR       cursorpattern[1024];
 
 } HWCINFO, *PHWCINFO;
 
@@ -208,7 +212,7 @@ typedef struct _ASTRec {
 #endif
 
     OptionInfoPtr 	Options;
-    DisplayModePtr      ModePtr;
+    DisplayModePtr  ModePtr;
     FBLinearPtr 	pCMDQPtr;
 #ifdef HAVE_XAA_H
     XAAInfoRecPtr	AccelInfoPtr;
@@ -250,24 +254,33 @@ typedef struct _ASTRec {
     IOADDRESS		RelocateIO;
 
     VIDEOMODE 		VideoModeInfo;
-    ASTRegRec           SavedReg;
+    ASTRegRec       SavedReg;
     CMDQINFO		CMDQInfo;
     HWCINFO    		HWCInfo;
-    ULONG		ulCMDReg;
-    Bool		EnableClip;
+    ULONG			ulCMDReg;
+    Bool			EnableClip;
 
-    int			clip_left;
-    int			clip_top;
-    int			clip_right;
-    int			clip_bottom;
+    int				clip_left;
+    int				clip_top;
+    int				clip_right;
+    int				clip_bottom;
 
-    int			mon_h_active;		/* Monitor Info. */
-    int			mon_v_active;
+    int				mon_h_active;		/* Monitor Info. */
+    int				mon_v_active;
 
 #ifdef AstVideo
     XF86VideoAdaptorPtr adaptor;
     Atom        	xvBrightness, xvContrast, xvColorKey, xvHue, xvSaturation;
-    Atom		xvGammaRed, xvGammaGreen, xvGammaBlue;
+    Atom			xvGammaRed, xvGammaGreen, xvGammaBlue;
+#endif
+
+#ifdef	Support_ShadowFB
+    Bool			shadowFB;
+    Bool			shadowFB_validation;
+    void            *shadow;
+    ShadowUpdateProc update;
+    ShadowWindowProc window;
+    CreateScreenResourcesProcPtr CreateScreenResources;
 #endif
 
 } ASTRec, *ASTRecPtr, *ASTPtr;

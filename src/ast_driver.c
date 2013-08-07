@@ -166,19 +166,21 @@ typedef enum {
    OPTION_ENG_CAPS,
    OPTION_DBG_SELECT,
    OPTION_NO_DDC,
-   OPTION_VGA2_CLONE
+   OPTION_VGA2_CLONE,
+   OPTION_SHADOW_FB
 } ASTOpts;
 
 static const OptionInfoRec ASTOptions[] = {
-   {OPTION_NOACCEL,	"NoAccel",	OPTV_BOOLEAN,	{0},	FALSE},
-   {OPTION_MMIO2D,	"MMIO2D",	OPTV_BOOLEAN,	{0},	FALSE},
-   {OPTION_SW_CURSOR,	"SWCursor",	OPTV_BOOLEAN,	{0},	FALSE},
-   {OPTION_HWC_NUM,	"HWCNumber",	OPTV_INTEGER,	{0},	FALSE},
-   {OPTION_ENG_CAPS,	"ENGCaps",	OPTV_INTEGER,	{0},	FALSE},
+   {OPTION_NOACCEL,	      "NoAccel",	OPTV_BOOLEAN,	{0},	FALSE},
+   {OPTION_MMIO2D,	       "MMIO2D",	OPTV_BOOLEAN,	{0},	FALSE},
+   {OPTION_SW_CURSOR,	 "SWCursor",	OPTV_BOOLEAN,	{0},	FALSE},
+   {OPTION_HWC_NUM,	    "HWCNumber",	OPTV_INTEGER,	{0},	FALSE},
+   {OPTION_ENG_CAPS,	  "ENGCaps",	OPTV_INTEGER,	{0},	FALSE},
    {OPTION_DBG_SELECT,	"DBGSelect",	OPTV_INTEGER,	{0},	FALSE},
-   {OPTION_NO_DDC,	"NoDDC",	OPTV_BOOLEAN,	{0}, 	FALSE},
+   {OPTION_NO_DDC,	        "NoDDC",	OPTV_BOOLEAN,	{0}, 	FALSE},
    {OPTION_VGA2_CLONE,	"VGA2Clone",	OPTV_BOOLEAN,	{0}, 	FALSE},
-   {-1,			NULL,		OPTV_NONE,	{0}, 	FALSE}
+   {OPTION_SHADOW_FB,    "ShadowFB",	OPTV_BOOLEAN,	{0},	FALSE},
+   {-1,			               NULL,	   OPTV_NONE,	{0}, 	FALSE}
 };
 
 #ifdef XFree86LOADER
@@ -345,6 +347,43 @@ ASTProbe(DriverPtr drv, int flags)
 
     return foundScreen;
 }
+
+#ifdef	Support_ShadowFB
+static void *
+ASTWindowLinear(ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode,
+		        CARD32 *size, void *closure)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    ASTPtr pAST = ASTPTR(pScrn);
+    int stride = pScrn->displayWidth * ((pScrn->bitsPerPixel + 1) / 8);
+
+    *size =  stride;
+    return ((uint8_t *)pAST->FBVirtualAddr + pScrn->fbOffset + row * stride + offset);
+
+}
+
+static void
+ASTUpdatePacked(ScreenPtr pScreen, shadowBufPtr pBuf)
+{
+    shadowUpdatePacked(pScreen, pBuf);
+}
+
+static Bool
+ASTCreateScreenResources(ScreenPtr pScreen)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    ASTPtr pAST = ASTPTR(pScrn);
+    Bool ret;
+
+    pScreen->CreateScreenResources = pAST->CreateScreenResources;
+    ret = pScreen->CreateScreenResources(pScreen);
+    pScreen->CreateScreenResources = ASTCreateScreenResources;
+    shadowAdd(pScreen, pScreen->GetScreenPixmap(pScreen), pAST->update,
+	          pAST->window, 0, 0);
+
+    return ret;
+}
+#endif	/* Support_ShadowFB */
 
 /*
  * ASTPreInit --
@@ -776,6 +815,21 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    }
 #endif
 
+   /* ShadowFB */
+#ifdef	Support_ShadowFB
+   pAST->shadowFB = FALSE;
+   if (pAST->noAccel == TRUE)	/* enable shadowFB only noAccel */
+   {
+       if (xf86ReturnOptValBool(pAST->Options, OPTION_SHADOW_FB, TRUE))
+       {
+	       if (xf86LoadSubModule(pScrn, "shadow")) {
+	          xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Using \"Shadow Framebuffer\"\n");
+	          pAST->shadowFB = TRUE;
+	       }
+       }
+   }
+#endif
+
 #ifndef XSERVER_LIBPCIACCESS
    /*  We won't be using the VGA access after the probe */
    xf86SetOperatingState(resVgaIo, pAST->pEnt->index, ResUnusedOpr);
@@ -856,14 +910,35 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
        return FALSE;
    }
 
+   /* allocate shadowFB */
+#ifdef	Support_ShadowFB
+   pAST->shadowFB_validation = FALSE;
+   if (pAST->shadowFB) {
+      pAST->shadow = calloc(1, pScrn->displayWidth * pScrn->virtualY *
+				     ((pScrn->bitsPerPixel + 7) / 8));
+	  if (!pAST->shadow) {
+	     xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Failed to allocate shadow buffer\n");
+	  }
+	  else
+	     pAST->shadowFB_validation = TRUE;
+   }
+#endif
+
    switch(pScrn->bitsPerPixel) {
        case 8:
        case 16:
        case 32:
-           if (!fbScreenInit(pScreen, pAST->FBVirtualAddr + pScrn->fbOffset,
-  	                     pScrn->virtualX, pScrn->virtualY,
-		             pScrn->xDpi, pScrn->yDpi,
-		             pScrn->displayWidth, pScrn->bitsPerPixel))
+#ifdef	Support_ShadowFB
+           if (!fbScreenInit(pScreen, pAST->shadowFB_validation ? pAST->shadow : (pAST->FBVirtualAddr + pScrn->fbOffset),
+  	                         pScrn->virtualX, pScrn->virtualY,
+		                     pScrn->xDpi, pScrn->yDpi,
+		                     pScrn->displayWidth, pScrn->bitsPerPixel))
+#else
+	       if (!fbScreenInit(pScreen, pAST->FBVirtualAddr + pScrn->fbOffset,
+			                 pScrn->virtualX, pScrn->virtualY,
+			                 pScrn->xDpi, pScrn->yDpi,
+			                 pScrn->displayWidth, pScrn->bitsPerPixel))
+#endif
                return FALSE;
            break;
        default:
@@ -886,11 +961,29 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
       }
    }
 
+   /* Must be after RGB order fixed */
    fbPictureInit(pScreen, 0, 0);
+
+   /* shadowFB setup */
+#ifdef	Support_ShadowFB
+   if (pAST->shadowFB_validation) {
+      pAST->update = ASTUpdatePacked;
+	  pAST->window = ASTWindowLinear;
+
+      if (!shadowSetup(pScreen))
+      {
+	     xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Failed to setup shadow buffer\n");
+	     return FALSE;
+      }
+
+	  pAST->CreateScreenResources = pScreen->CreateScreenResources;
+	  pScreen->CreateScreenResources = ASTCreateScreenResources;
+   }
+#endif
 
    xf86SetBlackWhitePixels(pScreen);
 
-#ifdef HAVE_XAA_H      
+#ifdef HAVE_XAA_H
 #ifdef Accel_2D
    if (!pAST->noAccel)
    {
@@ -1264,6 +1357,14 @@ ASTCloseScreen(CLOSE_SCREEN_ARGS_DECL)
        pAST->HWCInfoPtr = NULL;
    }
 
+#ifdef	Support_ShadowFB
+   if (pAST->shadowFB_validation) {
+      shadowRemove(pScreen, pScreen->GetScreenPixmap(pScreen));
+	  free(pAST->shadow);
+      pScreen->CreateScreenResources = pAST->CreateScreenResources;
+   }
+#endif
+
    pScrn->vtSema = FALSE;
    pScreen->CloseScreen = pAST->CloseScreen;
    return (*pScreen->CloseScreen) (CLOSE_SCREEN_ARGS);
@@ -1423,7 +1524,7 @@ ASTRestore(ScrnInfoPtr pScrn)
        /* Restore DAC */
        for (i=0; i<256; i++)
           VGA_LOAD_PALETTE_INDEX (i, astReg->DAC[i][0], astReg->DAC[i][1], astReg->DAC[i][2]);
-      
+
       /* fixed Console Switch Refresh Rate Incorrect issue, ycchen@051106 */
       for (i=0x81; i<=0xB6; i++)
           SetIndexReg(CRTC_PORT, (UCHAR) (i), astReg->ExtCRTC[icount++]);
