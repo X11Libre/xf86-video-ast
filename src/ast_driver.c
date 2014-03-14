@@ -300,21 +300,6 @@ ASTProbe(DriverPtr drv, int flags)
         for (i = 0; i < numUsed; i++) {
 	    ScrnInfoPtr pScrn = NULL;
 
-#ifdef XSERVER_LIBPCIACCESS
-            {
-                struct pci_device *pPci = xf86GetPciInfoForEntity(usedChips[i]);
-
-                if (pci_device_has_kernel_driver(pPci)) {
-                    xf86DrvMsg(0, X_ERROR,
-                               "ast: The PCI device 0x%x at %2.2d@%2.2d:%2.2d:%1.1d has a kernel module claiming it.\n",
-                               pPci->device_id, pPci->bus, pPci->domain, pPci->dev, pPci->func);
-                    xf86DrvMsg(0, X_ERROR,
-                               "cirrus: This driver cannot operate until it has been unloaded.\n");
-                    return FALSE;
-                }
-            }
-#endif
-
 	    /* Allocate new ScrnInfoRec and claim the slot */
 	    if ((pScrn = xf86ConfigPciEntity(pScrn, 0, usedChips[i],
 					     ASTPciChipsets, 0, 0, 0, 0, 0)))
@@ -657,7 +642,9 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
        bASTRegInit(pScrn);
 
        /* Get Chip Type */
-       if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x20)
+       if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x30)
+           pAST->jChipType = AST2400;
+       else if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x20)
            pAST->jChipType = AST2300;
        else if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x10)
            GetChipType(pScrn);
@@ -707,7 +694,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    clockRanges->doubleScanAllowed = FALSE;
 
    /* Add for AST2100, ycchen@061807 */
-   if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180))
+   if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) || (pAST->jChipType == AST1180))
    {
        maxPitch  = 1920;
        maxHeight = 1200;
@@ -1023,7 +1010,7 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
    xf86DPMSInit(pScreen, ASTDisplayPowerManagementSet, 0);
 
 #ifdef AstVideo
-   if ( (pAST->jChipType == AST1180) || (pAST->jChipType == AST2300) )
+   if ( (pAST->jChipType == AST1180) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) )
    {
        xf86DrvMsg(pScrn->scrnIndex, X_INFO,"AST Initial Video()\n");
        ASTInitVideo(pScreen);
@@ -1217,7 +1204,7 @@ ASTValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode, Bool verbose, int flags)
       if ( (mode->CrtcHDisplay == 1600) && (mode->CrtcVDisplay == 900) )
           return MODE_OK;
 
-      if ( (pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180) )
+      if ( (pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) || (pAST->jChipType == AST1180) )
       {
           if ( (mode->CrtcHDisplay == 1920) && (mode->CrtcVDisplay == 1080) )
               return MODE_OK;

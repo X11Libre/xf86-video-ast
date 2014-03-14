@@ -126,7 +126,7 @@ GetDRAMInfo(ScrnInfoPtr pScrn)
        pAST->ulDRAMBusWidth = 32;
 
     /* Get DRAM Type */
-    if (pAST->jChipType == AST2300)
+    if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
     {
         switch (ulData & 0x03)
         {
@@ -236,7 +236,7 @@ GetMaxDCLK(ScrnInfoPtr pScrn)
    /* Modify DARM utilization to 60% for AST1100/2100 16bits DRAM, ycchen@032508 */
    if ( ((pAST->jChipType == AST2100) || (pAST->jChipType == AST1100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2150)) && (ulDRAMBusWidth == 16) )
        DRAMEfficiency = 600;
-   else if (pAST->jChipType == AST2300)
+   else if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
        DRAMEfficiency = 400;
    ulDRAMBandwidth = ulMCLK * ulDRAMBusWidth * 2 / 8;
    ActualDRAMBandwidth = ulDRAMBandwidth * DRAMEfficiency / 1000;
@@ -259,7 +259,7 @@ GetMaxDCLK(ScrnInfoPtr pScrn)
    }
 
    /* Add for AST2100, ycchen@061807 */
-   if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180) )
+   if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) || (pAST->jChipType == AST1180) )
    {
        if (ulDCLK > 200) ulDCLK = 200;
    }
@@ -334,7 +334,7 @@ GetScratchOptions(ScrnInfoPtr pScrn)
        else
        {
            pAST->SupportWideScreen = FALSE;
-           if (pAST->jChipType == AST2300)	/* for AST1300 */
+           if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))	/* for AST1300 */
            {
                *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
                *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
@@ -721,7 +721,7 @@ void vSetDefExtReg(ScrnInfoPtr pScrn)
     }
 
     /* Set Ext. Reg */
-    if (pAST->jChipType == AST2300)
+    if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
     {
        if (PCI_DEV_REVISION(pAST->PciInfo) > 0x20)
            pjExtRegInfo = ExtRegInfo_AST2300;
@@ -749,7 +749,7 @@ void vSetDefExtReg(ScrnInfoPtr pScrn)
 
     /* Enable RAMDAC for A1, ycchen@113005 */
     jReg = 0x04;
-    if (pAST->jChipType == AST2300)
+    if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
         jReg |= 0x20;
     SetIndexRegMask(CRTC_PORT,0xB6, 0xFF, jReg);
 
@@ -2546,7 +2546,7 @@ void vGetDefaultSettings(ScrnInfoPtr pScrn)
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulData;
 
-    if (pAST->jChipType == AST2300)
+    if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
     {
         *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
         *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
@@ -2604,7 +2604,7 @@ Bool InitVGA(ScrnInfoPtr pScrn, ULONG Flags)
        if (Flags == 0)
            vGetDefaultSettings(pScrn);
 
-       if (pAST->jChipType == AST2300)
+       if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
            vInitAST2300DRAMReg(pScrn);
        else
            vInitDRAMReg(pScrn);

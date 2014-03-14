@@ -197,7 +197,7 @@ ASTAccelInit(ScreenPtr pScreen)
     /* Solid Lines */
     if (pAST->ENGCaps & ENG_CAP_SolidLine)
     {
-        if ( (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180) )
+        if ( (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) || (pAST->jChipType == AST1180) )
     	{
             infoPtr->SubsequentSolidTwoPointLine = AIPSubsequentSolidTwoPointLine;
         }
@@ -214,7 +214,7 @@ ASTAccelInit(ScreenPtr pScreen)
     /* Dashed Lines */
     if (pAST->ENGCaps & ENG_CAP_DashedLine)
     {
-        if ( (pAST->jChipType == AST2300) || (pAST->jChipType == AST1180) )
+        if ( (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) || (pAST->jChipType == AST1180) )
         {
             infoPtr->SubsequentDashedTwoPointLine = AIPSubsequentDashedTwoPointLine;
         }
