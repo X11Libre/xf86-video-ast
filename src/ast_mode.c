@@ -413,8 +413,8 @@ VBIOS_DAC_INFO DAC_VGA[] = {
 /* extern. function */
 extern void vASTOpenKey(ScrnInfoPtr pScrn);
 extern Bool bASTRegInit(ScrnInfoPtr pScrn);
-extern void vAST1000DisplayOn(ScrnInfoPtr pScrn);
-extern void vAST1000DisplayOff(ScrnInfoPtr pScrn);
+extern void vAST1000DisplayOn(ASTRecPtr pAST);
+extern void vAST1000DisplayOff(ASTRecPtr pAST);
 
 extern Bool bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
@@ -465,8 +465,6 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
         vASTOpenKey(pScrn);
         bASTRegInit(pScrn);
 
-        vAST1000DisplayOff(pScrn);
-
         vSetStdReg(pScrn, mode, &vgamodeinfo);
         vSetCRTCReg(pScrn, mode, &vgamodeinfo);
         vSetOffsetReg(pScrn, mode, &vgamodeinfo);
@@ -474,8 +472,6 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
         vSetExtReg(pScrn, mode, &vgamodeinfo);
         vSetSyncReg(pScrn, mode, &vgamodeinfo);
         bSetDACReg(pScrn, mode, &vgamodeinfo);
-
-        vAST1000DisplayOn(pScrn);
     }
 
     /* post set mode */
@@ -495,6 +491,7 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
        }
    }
 #endif
+    vAST1000DisplayOn(pAST);
 
     return (TRUE);
 }

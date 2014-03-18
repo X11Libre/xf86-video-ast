@@ -71,15 +71,8 @@ typedef enum _CHIP_ID {
     AST1180
 } CHIP_ID;
 
-typedef enum _TX_CHIPTYPE {
-	Tx_NONE,
-	Tx_Sil164,
-    Tx_Ite66121,
-    Tx_DP501
-} TX_CHIPTYPE;
-
 /* AST REC Info */
-#define AST_NAME 			    "AST"
+#define AST_NAME 			"AST"
 #define AST_DRIVER_NAME 		"ast"
 #define AST_MAJOR_VERSION 		PACKAGE_VERSION_MAJOR
 #define AST_MINOR_VERSION 		PACKAGE_VERSION_MINOR
@@ -89,15 +82,11 @@ typedef enum _TX_CHIPTYPE {
 
 /* Customized Info */
 #define DEFAULT_VIDEOMEM_SIZE		0x00800000
-#define DEFAULT_MMIO_SIZE			0x00020000
-#define DEFAULT_CMDQ_SIZE			0x00100000
-#define MIN_CMDQ_SIZE				0x00040000
+#define DEFAULT_MMIO_SIZE		0x00020000
+#define DEFAULT_CMDQ_SIZE		0x00100000
+#define MIN_CMDQ_SIZE			0x00040000
 #define CMD_QUEUE_GUARD_BAND    	0x00000020
-#define DEFAULT_HWC_NUM				0x00000002
-
-/* Customized Info. for DVO */
-#define HDMI_I2C_CHANNEL			1
-#define HDMI_TX_I2C_SLAVE_ADDR 		0x98
+#define DEFAULT_HWC_NUM			0x00000002
 
 /* Patch Info */
 #define ABI_VIDEODRV_VERSION_PATCH	SET_ABI_VERSION(0, 5)
@@ -279,10 +268,6 @@ typedef struct _ASTRec {
 
     int				mon_h_active;		/* Monitor Info. */
     int				mon_v_active;
-
-    UCHAR			jTxChipType;		/* 3rd TX */
-    UCHAR			DP501_MaxVCLK;
-    UCHAR			*pDP501FWBufferVirtualAddress;
 
 #ifdef AstVideo
     XF86VideoAdaptorPtr adaptor;

@@ -85,9 +85,6 @@ extern Bool bInitAST1180(ScrnInfoPtr pScrn);
 extern void GetAST1180DRAMInfo(ScrnInfoPtr pScrn);
 extern void vEnableASTVGAMMIO(ScrnInfoPtr pScrn);
 
-extern Bool ReadEDID_M68K(ScrnInfoPtr pScrn, BYTE *pEDIDData);
-extern UCHAR GetLinkMaxCLK(ScrnInfoPtr pScrn);
-
 extern Bool bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
@@ -1268,14 +1265,10 @@ ASTGetRec(ScrnInfoPtr pScrn)
 static void
 ASTFreeRec(ScrnInfoPtr pScrn)
 {
-   ASTRecPtr pAST = ASTPTR(pScrn);
-
    if (!pScrn)
       return;
    if (!pScrn->driverPrivate)
       return;
-   if (pAST->pDP501FWBufferVirtualAddress)
-       free(pAST->pDP501FWBufferVirtualAddress);
    free(pScrn->driverPrivate);
    pScrn->driverPrivate = 0;
 }
@@ -1540,12 +1533,6 @@ ASTProbeDDC(ScrnInfoPtr pScrn, int index)
    {
       if (pAST->jChipType == AST1180)
           Flags = GetVGA2EDID(pScrn, DDC_data);
-      else if (pAST->jTxChipType == Tx_DP501)
-      {
-          Flags = ReadEDID_M68K(pScrn, DDC_data);
-          if (Flags == FALSE)
-              Flags = GetVGAEDID(pScrn, DDC_data);
-      }
       else
           Flags = GetVGAEDID(pScrn, DDC_data);
 
@@ -1590,14 +1577,6 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
    {
       if (pAST->jChipType == AST1180)
           Flags = GetVGA2EDID(pScrn, DDC_data);
-      else if (pAST->jTxChipType == Tx_DP501)
-      {
-	      pAST->DP501_MaxVCLK = 0xFF;
-          Flags = ReadEDID_M68K(pScrn, DDC_data);
-          if (Flags) pAST->DP501_MaxVCLK = GetLinkMaxCLK(pScrn);
-          else
-              Flags = GetVGAEDID(pScrn, DDC_data);
-      }
       else
           Flags = GetVGAEDID(pScrn, DDC_data);
 
