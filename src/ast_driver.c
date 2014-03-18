@@ -312,7 +312,7 @@ ASTProbe(DriverPtr drv, int flags)
                                "ast: The PCI device 0x%x at %2.2d@%2.2d:%2.2d:%1.1d has a kernel module claiming it.\n",
                                pPci->device_id, pPci->bus, pPci->domain, pPci->dev, pPci->func);
                     xf86DrvMsg(0, X_ERROR,
-                               "cirrus: This driver cannot operate until it has been unloaded.\n");
+                               "ast: This driver cannot operate until it has been unloaded.\n");
                     xf86UnclaimPciSlot(pPci, devSections[0]);
                     free(devSections);
                     return FALSE;
