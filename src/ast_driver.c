@@ -291,7 +291,10 @@ ASTProbe(DriverPtr drv, int flags)
 				   devSections, numDevSections,
 				   drv, &usedChips);
 
-    free(devSections);
+    if (numUsed <= 0) {
+	free(devSections);
+	return FALSE;
+    }
 
     if (flags & PROBE_DETECT) {
         if (numUsed > 0)
@@ -310,6 +313,8 @@ ASTProbe(DriverPtr drv, int flags)
                                pPci->device_id, pPci->bus, pPci->domain, pPci->dev, pPci->func);
                     xf86DrvMsg(0, X_ERROR,
                                "cirrus: This driver cannot operate until it has been unloaded.\n");
+                    xf86UnclaimPciSlot(pPci, devSections[0]);
+                    free(devSections);
                     return FALSE;
                 }
             }
@@ -343,6 +348,7 @@ ASTProbe(DriverPtr drv, int flags)
         }  /* end of for-loop */
     } /* end of if flags */
 
+    free(devSections);
     free(usedChips);
 
     return foundScreen;
