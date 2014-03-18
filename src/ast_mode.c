@@ -694,7 +694,7 @@ void vSetStdReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
 
     }
 
-
+    
 }
 
 void
@@ -795,7 +795,7 @@ void vSetDCLKReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMo
     pAST = ASTPTR(pScrn);
 
     pEnhModePtr = pVGAModeInfo->pEnhTableEntry;
-    if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST1100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2150) || (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
+    if ((pAST->jChipType == AST2100) || (pAST->jChipType == AST1100) || (pAST->jChipType == AST2200) || (pAST->jChipType == AST2150) || (pAST->jChipType == AST2300))
         pDCLKPtr = &DCLKTable_AST2100[pEnhModePtr->DCLKIndex];
     else
         pDCLKPtr = &DCLKTable[pEnhModePtr->DCLKIndex];
@@ -847,7 +847,7 @@ void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
 #endif
 
     /* Set Threshold */
-    if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400))
+    if (pAST->jChipType == AST2300)
     {
         SetIndexReg(CRTC_PORT,0xA7, 0x78);
         SetIndexReg(CRTC_PORT,0xA6, 0x60);

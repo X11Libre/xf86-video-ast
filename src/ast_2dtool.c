@@ -248,7 +248,7 @@ bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     ULONG ulData;
     PFN_bENABLE_CMDQ pfnEnableCMDQ = bEnableCMDQ;
 
-    if ( (pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) )
+    if (pAST->jChipType == AST2300)
         pfnEnableCMDQ = bEnableCMDQ2300;
 
     switch (pAST->jChipType)
@@ -258,7 +258,6 @@ bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     case AST2200:
     case AST2150:
     case AST2300:
-    case AST2400:
        *(ULONG *) (pAST->MMIOVirtualAddr + 0xF004) = 0x1e6e0000;
        *(ULONG *) (pAST->MMIOVirtualAddr + 0xF000) = 0x1;
 
