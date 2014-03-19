@@ -71,6 +71,13 @@ typedef enum _CHIP_ID {
     AST1180
 } CHIP_ID;
 
+typedef enum _TX_CHIPTYPE {
+    Tx_NONE,
+    Tx_Sil164,
+    Tx_Ite66121,
+    Tx_DP501
+} TX_CHIPTYPE;
+
 /* AST REC Info */
 #define AST_NAME 			"AST"
 #define AST_DRIVER_NAME 		"ast"
@@ -87,6 +94,10 @@ typedef enum _CHIP_ID {
 #define MIN_CMDQ_SIZE			0x00040000
 #define CMD_QUEUE_GUARD_BAND    	0x00000020
 #define DEFAULT_HWC_NUM			0x00000002
+
+/* Customized Info. for DVO */
+#define HDMI_I2C_CHANNEL		1
+#define HDMI_TX_I2C_SLAVE_ADDR 		0x98
 
 /* Patch Info */
 #define ABI_VIDEODRV_VERSION_PATCH	SET_ABI_VERSION(0, 5)
@@ -240,7 +251,7 @@ typedef struct _ASTRec {
     Bool		VGA2Clone;
     Bool		SupportWideScreen;
 
-    ULONG     		FBPhysAddr;		/* Frame buffer physical address     */
+    ULONG     		FBPhysAddr;			/* Frame buffer physical address     */
     ULONG     		MMIOPhysAddr;     	/* MMIO region physical address      */
     ULONG     		BIOSPhysAddr;     	/* BIOS physical address             */
 
@@ -268,6 +279,10 @@ typedef struct _ASTRec {
 
     int				mon_h_active;		/* Monitor Info. */
     int				mon_v_active;
+
+    UCHAR			jTxChipType;		/* 3rd TX */
+    UCHAR			DP501_MaxVCLK;
+    UCHAR			*pDP501FWBufferVirtualAddress;
 
 #ifdef AstVideo
     XF86VideoAdaptorPtr adaptor;
