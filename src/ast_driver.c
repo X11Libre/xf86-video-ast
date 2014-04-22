@@ -281,7 +281,11 @@ ASTProbe(DriverPtr drv, int flags)
                                pPci->device_id, pPci->bus, pPci->domain, pPci->dev, pPci->func);
                     xf86DrvMsg(0, X_ERROR,
                                "ast: This driver cannot operate until it has been unloaded.\n");
-                    xf86UnclaimPciSlot(pPci, devSections[0]);
+                    xf86UnclaimPciSlot(pPci
+#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) >= 13
+				       , devSections[0]
+#endif
+				       );
                     free(devSections);
                     return FALSE;
                 }
