@@ -56,6 +56,9 @@
 
 /* Driver specific headers */
 #include "ast.h"
+#include "ast_mode.h"
+#include "ast_vgatool.h"
+#include "ast_2dtool.h"
 
 /* Mandatory functions */
 static void ASTIdentify(int flags);

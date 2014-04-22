@@ -357,8 +357,3 @@ Bool ASTUnmapMem(ScrnInfoPtr pScrn);
 Bool ASTMapMMIO(ScrnInfoPtr pScrn);
 void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 
-/* Include Files */
-#include "ast_mode.h"
-#include "ast_vgatool.h"
-#include "ast_2dtool.h"
-#include "ast_cursor.h"

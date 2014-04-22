@@ -52,6 +52,8 @@
 
 /* Driver specific headers */
 #include "ast.h"
+#include "ast_mode.h"
+#include "ast_vgatool.h"
 
 static VBIOS_STDTABLE_STRUCT StdTable[] = {
     /* MD_2_3_400 */

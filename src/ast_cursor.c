@@ -50,6 +50,8 @@
 
 /* Driver specific headers */
 #include "ast.h"
+#include "ast_vgatool.h"
+#include "ast_cursor.h"
 
 #ifdef	HWC
 /* Prototype type declaration */

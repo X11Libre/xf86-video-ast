@@ -52,6 +52,7 @@
 
 /* Driver specific headers */
 #include "ast.h"
+#include "ast_2dtool.h"
 
 #ifdef	Accel_2D
 

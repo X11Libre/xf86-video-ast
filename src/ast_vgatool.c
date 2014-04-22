@@ -52,6 +52,7 @@
 
 /* Driver specific headers */
 #include "ast.h"
+#include "ast_vgatool.h"
 
 
 __inline ULONG MIndwm(UCHAR *mmiobase, ULONG r)

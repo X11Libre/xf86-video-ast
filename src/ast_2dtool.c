@@ -48,6 +48,8 @@
 
 /* Driver specific headers */
 #include "ast.h"
+#include "ast_vgatool.h"
+#include "ast_2dtool.h"
 
 #ifdef	Accel_2D
 typedef Bool (*PFN_bENABLE_CMDQ)(ScrnInfoPtr , ASTRecPtr);
