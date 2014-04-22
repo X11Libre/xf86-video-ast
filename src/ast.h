@@ -335,6 +335,13 @@ UCHAR *pASTjRequestCMDQ(ASTRecPtr pAST, ULONG ulDataLen);
 Bool bASTEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 void vASTDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 
+/* ast_cursor.c */
+#ifdef  HWC
+Bool ASTCursorInit(ScreenPtr pScreen);
+Bool bASTInitHWC(ScrnInfoPtr pScrn, ASTRecPtr pAST);
+void ASTDisableHWC(ScrnInfoPtr pScrn);
+#endif
+
 /* Include Files */
 #include "ast_mode.h"
 #include "ast_vgatool.h"

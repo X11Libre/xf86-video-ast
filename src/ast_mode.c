@@ -406,9 +406,6 @@ VBIOS_DAC_INFO DAC_VGA[] = {
  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 },
 };
 
-/* extern. function */
-extern Bool bInitHWC(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-
 /* Prototype type declaration*/
 Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
@@ -477,7 +474,7 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
 #endif
 #ifdef	HWC
    if (!pAST->noHWC) {
-       if (!bInitHWC(pScrn, pAST)) {
+       if (!bASTInitHWC(pScrn, pAST)) {
            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,"Init HWC failed\n");
            pAST->noHWC = TRUE;
        }

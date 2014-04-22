@@ -69,9 +69,6 @@ extern Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 extern Bool ASTAccelInit(ScreenPtr pScreen);
 #endif
 
-extern Bool ASTCursorInit(ScreenPtr pScreen);
-extern void ASTDisableHWC(ScrnInfoPtr pScrn);
-
 /* Mandatory functions */
 static void ASTIdentify(int flags);
 const OptionInfoRec *ASTAvailableOptions(int chipid, int busid);
