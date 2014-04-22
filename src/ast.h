@@ -261,9 +261,11 @@ typedef struct _ASTRec {
     unsigned long	FbMapSize;
     unsigned long	MMIOMapSize;
 
-    IOADDRESS		IODBase;        	/* Base of PIO memory area */
-    IOADDRESS		PIOOffset;
+#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 12
     IOADDRESS		RelocateIO;
+#else
+    int			RelocateIO;
+#endif
 
     VIDEOMODE 		VideoModeInfo;
     ASTRegRec       SavedReg;

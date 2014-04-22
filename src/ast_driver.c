@@ -570,23 +570,21 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    xf86DrvMsg(pScrn->scrnIndex, from, "Chipset: \"%s\"\n",
 	      (pScrn->chipset != NULL) ? pScrn->chipset : "Unknown ast");
 
-   /* Resource Allocation */
+
 #if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 12
-    pAST->IODBase = pScrn->domainIOBase;
-#else
-    pAST->IODBase = 0;
-#endif
     /* "Patch" the PIOOffset inside vgaHW in order to force
      * the vgaHW module to use our relocated i/o ports.
      */
+    VGAHWPTR(pScrn)->PIOOffset =
+	pScrn->domainIOBase + PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) - 0x380;
 
-#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 12
-    VGAHWPTR(pScrn)->PIOOffset = /* ... */
+    pAST->RelocateIO = pScrn->domainIOBase +
+	    PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO);
+#else
+    pAST->RelocateIO = (PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO));
+
 #endif
-       	pAST->PIOOffset =
-	pAST->IODBase + PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) - 0x380;
 
-    pAST->RelocateIO = (IOADDRESS)(PCI_REGION_BASE(pAST->PciInfo, 2, REGION_IO) + pAST->IODBase);
 
    if (pAST->pEnt->device->MemBase != 0) {
       pAST->FBPhysAddr = pAST->pEnt->device->MemBase;
