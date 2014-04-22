@@ -19,6 +19,10 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
+#ifndef _AST_H_
+# define _AST_H_
+
 /* Compiler Options */
 #define	Accel_2D
 /* #define MMIO_2D */
@@ -356,3 +360,5 @@ Bool ASTMapMem(ScrnInfoPtr pScrn);
 Bool ASTUnmapMem(ScrnInfoPtr pScrn);
 Bool ASTMapMMIO(ScrnInfoPtr pScrn);
 void ASTUnmapMMIO(ScrnInfoPtr pScrn);
+
+#endif /* _AST_H_ */
