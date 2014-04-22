@@ -356,4 +356,3 @@ Bool ASTMapMem(ScrnInfoPtr pScrn);
 Bool ASTUnmapMem(ScrnInfoPtr pScrn);
 Bool ASTMapMMIO(ScrnInfoPtr pScrn);
 void ASTUnmapMMIO(ScrnInfoPtr pScrn);
-
