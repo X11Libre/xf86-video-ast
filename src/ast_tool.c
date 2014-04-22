@@ -50,12 +50,6 @@
 /* Driver specific headers */
 #include "ast.h"
 
-/* Prototype type declaration*/
-Bool ASTMapMem(ScrnInfoPtr pScrn);
-Bool ASTUnmapMem(ScrnInfoPtr pScrn);
-Bool ASTMapMMIO(ScrnInfoPtr pScrn);
-void ASTUnmapMMIO(ScrnInfoPtr pScrn);
-
 Bool
 ASTMapMem(ScrnInfoPtr pScrn)
 {

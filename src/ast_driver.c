@@ -57,12 +57,6 @@
 /* Driver specific headers */
 #include "ast.h"
 
-/* external reference fucntion */
-extern Bool ASTMapMem(ScrnInfoPtr pScrn);
-extern Bool ASTUnmapMem(ScrnInfoPtr pScrn);
-extern Bool ASTMapMMIO(ScrnInfoPtr pScrn);
-extern void ASTUnmapMMIO(ScrnInfoPtr pScrn);
-
 /* Mandatory functions */
 static void ASTIdentify(int flags);
 const OptionInfoRec *ASTAvailableOptions(int chipid, int busid);

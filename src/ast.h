@@ -351,6 +351,11 @@ Bool ASTAccelInit(ScreenPtr pScreen);
 #endif
 void ASTDisplayVideo(ScrnInfoPtr pScrn, ASTPortPrivPtr pPriv, RegionPtr clipBoxes, int id);
 
+/* ast_tool.c */
+Bool ASTMapMem(ScrnInfoPtr pScrn);
+Bool ASTUnmapMem(ScrnInfoPtr pScrn);
+Bool ASTMapMMIO(ScrnInfoPtr pScrn);
+void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 
 /* Include Files */
 #include "ast_mode.h"
