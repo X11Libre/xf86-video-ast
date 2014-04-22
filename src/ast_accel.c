@@ -98,7 +98,6 @@ int ASTXAAPatternROP[16]=
 };
 
 /* Prototype type declaration */
-Bool ASTAccelInit(ScreenPtr pScreen);
 static void ASTSync(ScrnInfoPtr pScrn);
 static void ASTSetupForScreenToScreenCopy(ScrnInfoPtr pScrn,
                                           int xdir, int ydir, int rop,

@@ -345,6 +345,13 @@ void ASTDisableHWC(ScrnInfoPtr pScrn);
 /* ast_mode.c */
 Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 
+/* ast_accel.c */
+#ifdef HAVE_XAA_H
+Bool ASTAccelInit(ScreenPtr pScreen);
+#endif
+void ASTDisplayVideo(ScrnInfoPtr pScrn, ASTPortPrivPtr pPriv, RegionPtr clipBoxes, int id);
+
+
 /* Include Files */
 #include "ast_mode.h"
 #include "ast_vgatool.h"

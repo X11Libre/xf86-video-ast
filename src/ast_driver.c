@@ -63,10 +63,6 @@ extern Bool ASTUnmapMem(ScrnInfoPtr pScrn);
 extern Bool ASTMapMMIO(ScrnInfoPtr pScrn);
 extern void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 
-#ifdef HAVE_XAA_H
-extern Bool ASTAccelInit(ScreenPtr pScreen);
-#endif
-
 /* Mandatory functions */
 static void ASTIdentify(int flags);
 const OptionInfoRec *ASTAvailableOptions(int chipid, int busid);
@@ -2095,8 +2091,6 @@ static int ASTQueryImageAttributes(ScrnInfoPtr pScrn, int id,
 
     return size;
 }
-
-extern void ASTDisplayVideo(ScrnInfoPtr pScrn, ASTPortPrivPtr pPriv, RegionPtr clipBoxes, int id);
 
 static int ASTPutImage(ScrnInfoPtr pScrn,
                           short src_x, short src_y,
