@@ -53,16 +53,8 @@
 typedef Bool (*PFN_bENABLE_CMDQ)(ScrnInfoPtr , ASTRecPtr);
 
 /* Prototype type declaration */
-Bool bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-Bool bEnableCMDQ2300(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-Bool bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-void vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-UCHAR *pjRequestCMDQ(ASTRecPtr pAST, ULONG   ulDataLen);
-Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam);
 
-Bool
+static Bool
 bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
 
@@ -110,12 +102,12 @@ bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     return (TRUE);
 }
 
-Bool
+static Bool
 bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulVMCmdQBasePort = 0;
 
-    vWaitEngIdle(pScrn, pAST);
+    vASTWaitEngIdle(pScrn, pAST);
 
     /* set DBG Select Info */
     if (pAST->DBGSelect)
@@ -176,12 +168,12 @@ bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST)
     return (TRUE);
 }
 
-Bool
+static Bool
 bEnableCMDQ2300(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulVMCmdQBasePort = 0, ulNewModeData;
 
-    vWaitEngIdle(pScrn, pAST);
+    vASTWaitEngIdle(pScrn, pAST);
 
     /* set DBG Select Info */
     if (pAST->DBGSelect)
@@ -242,7 +234,7 @@ bEnableCMDQ2300(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 } /* bEnableCMDQ2300 */
 
 Bool
-bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
+bASTEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulData;
     PFN_bENABLE_CMDQ pfnEnableCMDQ = bEnableCMDQ;
@@ -272,13 +264,13 @@ bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 
     if (!bInitCMDQInfo(pScrn, pAST))
     {
-        vDisable2D(pScrn, pAST);
+        vASTDisable2D(pScrn, pAST);
     	return (FALSE);
     }
 
     if (!pfnEnableCMDQ(pScrn, pAST))
     {
-        vDisable2D(pScrn, pAST);
+        vASTDisable2D(pScrn, pAST);
     	return (FALSE);
     }
 
@@ -286,11 +278,11 @@ bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 }
 
 void
-vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
+vASTDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
 
-    vWaitEngIdle(pScrn, pAST);
-    vWaitEngIdle(pScrn, pAST);
+    vASTWaitEngIdle(pScrn, pAST);
+    vASTWaitEngIdle(pScrn, pAST);
 
     /* restore 2D settings */
     if (pAST->jChipType != AST1180)
@@ -309,7 +301,7 @@ vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 
 
 void
-vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
+vASTWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 {
     ULONG ulEngState, ulEngState2;
     UCHAR jReg;
@@ -320,11 +312,11 @@ vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 
         /* 2D disable if 0xA4 D[0] = 1 */
         GetIndexRegMask(CRTC_PORT, 0xA4, 0x01, jReg);
-        if (!jReg) goto Exit_vWaitEngIdle;
+        if (!jReg) goto Exit_vASTWaitEngIdle;
 
         /* 2D not work if in std. mode */
         GetIndexRegMask(CRTC_PORT, 0xA3, 0x0F, jReg);
-        if (!jReg) goto Exit_vWaitEngIdle;
+        if (!jReg) goto Exit_vASTWaitEngIdle;
     }
 
     if (*(ULONG *) (pAST->CMDQInfo.pjCmdQBasePort) & 0x02000000)	/* MMIO Mode */
@@ -341,7 +333,7 @@ vWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST)
 
     } while ((ulEngState & ulEngCheckSetting) || (ulEngState != ulEngState2));
 
-Exit_vWaitEngIdle:
+Exit_vASTWaitEngIdle:
     ;
 }
 
@@ -362,7 +354,7 @@ static __inline ULONG ulGetCMDQLength(ASTRecPtr pAST, ULONG ulWritePointer, ULON
     return ((ulReadPointer << 3) - ulWritePointer - CMD_QUEUE_GUARD_BAND) & ulCMDQMask;
 }
 
-UCHAR *pjRequestCMDQ(
+UCHAR *pASTjRequestCMDQ(
 ASTRecPtr pAST, ULONG   ulDataLen)
 {
     UCHAR   *pjBuffer;
@@ -452,7 +444,7 @@ ASTRecPtr pAST, ULONG   ulDataLen)
 
 } /* end of pjRequestCmdQ() */
 
-Bool bGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
+Bool bASTGetLineTerm(_LINEInfo *LineInfo, LINEPARAM *dsLineParam)
 {
     LONG GAbsX, GAbsY, GXInc, GYInc, GXMajor;
     LONG MM, mm, Error0, K1, K2;

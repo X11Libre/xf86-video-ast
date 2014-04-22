@@ -329,6 +329,12 @@ void ASTGetAST1180DRAMInfo(ScrnInfoPtr pScrn);
 void vASTEnableVGAMMIO(ScrnInfoPtr pScrn);
 Bool ASTInitVGA(ScrnInfoPtr pScrn, ULONG Flags);
 
+/* ast_2dtool.c */
+void vASTWaitEngIdle(ScrnInfoPtr pScrn, ASTRecPtr pAST);
+UCHAR *pASTjRequestCMDQ(ASTRecPtr pAST, ULONG ulDataLen);
+Bool bASTEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
+void vASTDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
+
 /* Include Files */
 #include "ast_mode.h"
 #include "ast_vgatool.h"

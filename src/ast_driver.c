@@ -65,10 +65,6 @@ extern void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 
 extern Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 
-extern Bool bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-extern Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-extern void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-
 #ifdef HAVE_XAA_H
 extern Bool ASTAccelInit(ScreenPtr pScreen);
 #endif
@@ -1062,7 +1058,7 @@ ASTSwitchMode(SWITCH_MODE_ARGS_DECL)
        xf86FreeOffscreenLinear(pAST->pCMDQPtr);		/* free CMDQ */
        pAST->pCMDQPtr = NULL;
    }
-   vDisable2D(pScrn, pAST);
+   vASTDisable2D(pScrn, pAST);
 #endif
 
    /* Fixed display abnormal on the of the screen if run xvidtune, ycchen@122909 */
@@ -1138,7 +1134,7 @@ ASTLeaveVT(VT_FUNC_ARGS_DECL)
        xf86FreeOffscreenLinear(pAST->pCMDQPtr);		/* free CMDQ */
        pAST->pCMDQPtr = NULL;
    }
-   vDisable2D(pScrn, pAST);
+   vASTDisable2D(pScrn, pAST);
 #endif
 
    ASTRestore(pScrn);
@@ -1322,7 +1318,7 @@ ASTCloseScreen(CLOSE_SCREEN_ARGS_DECL)
            xf86FreeOffscreenLinear(pAST->pCMDQPtr);		/* free CMDQ */
            pAST->pCMDQPtr = NULL;
        }
-       vDisable2D(pScrn, pAST);
+       vASTDisable2D(pScrn, pAST);
 #endif
 
        ASTRestore(pScrn);

@@ -407,9 +407,6 @@ VBIOS_DAC_INFO DAC_VGA[] = {
 };
 
 /* extern. function */
-extern Bool bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-extern void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
-
 extern Bool bInitHWC(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 
 /* Prototype type declaration*/
@@ -472,7 +469,7 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
     /* post set mode */
 #ifdef	Accel_2D
    if (!pAST->noAccel) {
-       if (!bEnable2D(pScrn, pAST)) {
+       if (!bASTEnable2D(pScrn, pAST)) {
            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,"Enable 2D failed\n");
            pAST->noAccel = TRUE;
        }
