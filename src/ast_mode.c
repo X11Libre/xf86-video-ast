@@ -420,7 +420,7 @@ static BOOL bSetAST1180CRTCReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_M
 static BOOL bSetAST1180OffsetReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
 static BOOL bSetAST1180DCLKReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
 static BOOL bSetAST1180ExtReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-static void vInitChontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vInitChrontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
 
 Bool
 ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
@@ -443,7 +443,7 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
         bSetAST1180DCLKReg(pScrn, mode, &vgamodeinfo);
         bSetAST1180ExtReg(pScrn, mode, &vgamodeinfo);
 
-        vInitChontelReg(pScrn, mode, &vgamodeinfo);
+        vInitChrontelReg(pScrn, mode, &vgamodeinfo);
     }
     else
     {
@@ -1176,7 +1176,7 @@ static UCHAR GetChrontelReg(ASTRecPtr pAST, UCHAR jChannel, UCHAR jIndex)
     return (jData);
 }
 
-static void vInitChontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static void vInitChrontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
 
     PVBIOS_ENHTABLE_STRUCT pEnhModePtr = pVGAModeInfo->pEnhTableEntry;
