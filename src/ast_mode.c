@@ -53,7 +53,7 @@
 /* Driver specific headers */
 #include "ast.h"
 
-VBIOS_STDTABLE_STRUCT StdTable[] = {
+static VBIOS_STDTABLE_STRUCT StdTable[] = {
     /* MD_2_3_400 */
     {
         0x67,
@@ -126,7 +126,7 @@ VBIOS_STDTABLE_STRUCT StdTable[] = {
     },
 };
 
-VBIOS_ENHTABLE_STRUCT  Res640x480Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res640x480Table[] = {
     { 800, 640, 8, 96, 525, 480, 2, 2, VCLK25_175,	/* 60Hz */
       (SyncNN | HBorder | VBorder | Charx8Dot), 60, 1, 0x2E },
     { 832, 640, 16, 40, 520, 480, 1, 3, VCLK31_5,	/* 72Hz */
@@ -140,7 +140,7 @@ VBIOS_ENHTABLE_STRUCT  Res640x480Table[] = {
 };
 
 
-VBIOS_ENHTABLE_STRUCT  Res800x600Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res800x600Table[] = {
     {1024, 800, 24, 72, 625, 600, 1, 2, VCLK36,		/* 56Hz */
       (SyncPP | Charx8Dot), 56, 1, 0x30 },
     {1056, 800, 40, 128, 628, 600, 1, 4, VCLK40,	/* 60Hz */
@@ -155,8 +155,7 @@ VBIOS_ENHTABLE_STRUCT  Res800x600Table[] = {
       (SyncPP | Charx8Dot), 0xFF, 5, 0x30 },
 };
 
-
-VBIOS_ENHTABLE_STRUCT  Res1024x768Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1024x768Table[] = {
     {1344, 1024, 24, 136, 806, 768, 3, 6, VCLK65,	/* 60Hz */
       (SyncNN | Charx8Dot), 60, 1, 0x31 },
     {1328, 1024, 24, 136, 806, 768, 3, 6, VCLK75,	/* 70Hz */
@@ -169,7 +168,7 @@ VBIOS_ENHTABLE_STRUCT  Res1024x768Table[] = {
       (SyncPP | Charx8Dot), 0xFF, 4, 0x31 },
 };
 
-VBIOS_ENHTABLE_STRUCT  Res1280x1024Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1280x1024Table[] = {
     {1688, 1280, 48, 112, 1066, 1024, 1, 3, VCLK108,	/* 60Hz */
       (SyncPP | Charx8Dot), 60, 1, 0x32 },
     {1688, 1280, 16, 144, 1066, 1024, 1, 3, VCLK135,	/* 75Hz */
@@ -180,7 +179,7 @@ VBIOS_ENHTABLE_STRUCT  Res1280x1024Table[] = {
       (SyncPP | Charx8Dot), 0xFF, 3, 0x32 },
 };
 
-VBIOS_ENHTABLE_STRUCT  Res1600x1200Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1600x1200Table[] = {
     {2160, 1600, 64, 192, 1250, 1200, 1, 3, VCLK162,	/* 60Hz */
       (SyncPP | Charx8Dot), 60, 1, 0x33 },
     {2160, 1600, 64, 192, 1250, 1200, 1, 3, VCLK162,	/* end */
@@ -188,21 +187,21 @@ VBIOS_ENHTABLE_STRUCT  Res1600x1200Table[] = {
 };
 
 /* 16:9 */
-VBIOS_ENHTABLE_STRUCT  Res1360x768Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1360x768Table[] = {
     {1792, 1360, 64,112, 795,  768, 3, 6, VCLK85_5,	/* 60Hz */
       (SyncPP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x39 },
     {1792, 1360, 64,112, 795,  768, 3, 6, VCLK85_5,	/* end */
       (SyncPP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x39 },
 };
 
-VBIOS_ENHTABLE_STRUCT  Res1600x900Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1600x900Table[] = {
     {1760, 1600, 48, 32, 926,  900, 3, 5, VCLK97_75,	/* 60Hz CVT RB */
       (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x3A },
     {1760, 1600, 48, 32, 926,  900, 3, 5, VCLK97_75,	/* end */
       (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x3A },
 };
 
-VBIOS_ENHTABLE_STRUCT  Res1920x1080Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1920x1080Table[] = {
     {2200, 1920, 88, 44, 1125, 1080, 4, 5, VCLK148_5,	/* HDTV 60Hz */
       (SyncPP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x38 },
     {2200, 1920, 88, 44, 1125, 1080, 4, 5, VCLK148_5,	/* end */
@@ -210,7 +209,7 @@ VBIOS_ENHTABLE_STRUCT  Res1920x1080Table[] = {
 };
 
 /* 16:10 */
-VBIOS_ENHTABLE_STRUCT  Res1280x800Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1280x800Table[] = {
     {1440, 1280, 48, 32,  823,  800, 3, 6, VCLK71,	/* 60Hz RB */
       (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 35 },
     {1680, 1280, 72,128,  831,  800, 3, 6, VCLK83_5,	/* 60Hz */
@@ -220,7 +219,7 @@ VBIOS_ENHTABLE_STRUCT  Res1280x800Table[] = {
 
 };
 
-VBIOS_ENHTABLE_STRUCT  Res1440x900Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1440x900Table[] = {
     {1600, 1440, 48, 32,  926,  900, 3, 6, VCLK88_75,	/* 60Hz RB */
       (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x36 },
     {1904, 1440, 80,152,  934,  900, 3, 6, VCLK106_5,	/* 60Hz */
@@ -229,7 +228,7 @@ VBIOS_ENHTABLE_STRUCT  Res1440x900Table[] = {
       (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x36 },
 };
 
-VBIOS_ENHTABLE_STRUCT  Res1680x1050Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1680x1050Table[] = {
     {1840, 1680, 48, 32, 1080, 1050, 3, 6, VCLK119,	/* 60Hz RB */
       (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x37 },
     {2240, 1680,104,176, 1089, 1050, 3, 6, VCLK146_25,	/* 60Hz */
@@ -238,14 +237,14 @@ VBIOS_ENHTABLE_STRUCT  Res1680x1050Table[] = {
       (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x37 },
 };
 
-VBIOS_ENHTABLE_STRUCT  Res1920x1200Table[] = {
+static VBIOS_ENHTABLE_STRUCT  Res1920x1200Table[] = {
     {2080, 1920, 48, 32, 1235, 1200, 3, 6, VCLK154,	/* 60Hz */
       (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x34 },
     {2080, 1920, 48, 32, 1235, 1200, 3, 6, VCLK154,	/* 60Hz */
       (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x34 },
 };
 
-VBIOS_DCLK_INFO DCLKTable [] = {
+static VBIOS_DCLK_INFO DCLKTable [] = {
     {0x2C, 0xE7, 0x03},					/* 00: VCLK25_175	*/
     {0x95, 0x62, 0x03},					/* 01: VCLK28_322	*/
     {0x67, 0x63, 0x01},					/* 02: VCLK31_5     */
@@ -273,7 +272,7 @@ VBIOS_DCLK_INFO DCLKTable [] = {
     {0x32, 0x67, 0x80},				    /* 18: VCLK85_5     */
 };
 
-VBIOS_DCLK_INFO DCLKTable_AST2100 [] = {
+static VBIOS_DCLK_INFO DCLKTable_AST2100 [] = {
     {0x2C, 0xE7, 0x03},					/* 00: VCLK25_175	*/
     {0x95, 0x62, 0x03},					/* 01: VCLK28_322	*/
     {0x67, 0x63, 0x01},					/* 02: VCLK31_5     */
@@ -301,7 +300,7 @@ VBIOS_DCLK_INFO DCLKTable_AST2100 [] = {
     {0x32, 0x67, 0x80},				    /* 18: VCLK85_5     */
 };
 
-VBIOS_DAC_INFO DAC_TEXT[] = {
+static VBIOS_DAC_INFO DAC_TEXT[] = {
  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x2a },  { 0x00, 0x2a, 0x00 },  { 0x00, 0x2a, 0x2a },
  { 0x2a, 0x00, 0x00 },  { 0x2a, 0x00, 0x2a },  { 0x2a, 0x2a, 0x00 },  { 0x2a, 0x2a, 0x2a },
  { 0x00, 0x00, 0x15 },  { 0x00, 0x00, 0x3f },  { 0x00, 0x2a, 0x15 },  { 0x00, 0x2a, 0x3f },
@@ -320,7 +319,7 @@ VBIOS_DAC_INFO DAC_TEXT[] = {
  { 0x3f, 0x15, 0x15 },  { 0x3f, 0x15, 0x3f },  { 0x3f, 0x3f, 0x15 },  { 0x3f, 0x3f, 0x3f },
 };
 
-VBIOS_DAC_INFO DAC_EGA[] = {
+static VBIOS_DAC_INFO DAC_EGA[] = {
  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x2a },  { 0x00, 0x2a, 0x00 },  { 0x00, 0x2a, 0x2a },
  { 0x2a, 0x00, 0x00 },  { 0x2a, 0x00, 0x2a },  { 0x2a, 0x2a, 0x00 },  { 0x2a, 0x2a, 0x2a },
  { 0x00, 0x00, 0x15 },  { 0x00, 0x00, 0x3f },  { 0x00, 0x2a, 0x15 },  { 0x00, 0x2a, 0x3f },
@@ -339,7 +338,7 @@ VBIOS_DAC_INFO DAC_EGA[] = {
  { 0x3f, 0x15, 0x15 },  { 0x3f, 0x15, 0x3f },  { 0x3f, 0x3f, 0x15 },  { 0x3f, 0x3f, 0x3f },
 };
 
-VBIOS_DAC_INFO DAC_VGA[] = {
+static VBIOS_DAC_INFO DAC_VGA[] = {
  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x2a },  { 0x00, 0x2a, 0x00 },  { 0x00, 0x2a, 0x2a },
  { 0x2a, 0x00, 0x00 },  { 0x2a, 0x00, 0x2a },  { 0x2a, 0x15, 0x00 },  { 0x2a, 0x2a, 0x2a },
  { 0x15, 0x15, 0x15 },  { 0x15, 0x15, 0x3f },  { 0x15, 0x3f, 0x15 },  { 0x15, 0x3f, 0x3f },
@@ -407,20 +406,19 @@ VBIOS_DAC_INFO DAC_VGA[] = {
 };
 
 /* Prototype type declaration*/
-Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
-Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-void vSetStdReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-void vSetCRTCReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-void vSetOffsetReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-void vSetDCLKReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-void vSetSyncReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-Bool bSetDACReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-BOOL bSetAST1180CRTCReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-BOOL bSetAST1180OffsetReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-BOOL bSetAST1180DCLKReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-BOOL bSetAST1180ExtReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
-void vInitChontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vSetStdReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vSetCRTCReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vSetOffsetReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vSetDCLKReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vSetSyncReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static Bool bSetDACReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static BOOL bSetAST1180CRTCReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static BOOL bSetAST1180OffsetReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static BOOL bSetAST1180DCLKReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static BOOL bSetAST1180ExtReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
+static void vInitChontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo);
 
 Bool
 ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
@@ -485,7 +483,7 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
 }
 
 
-Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     ASTRecPtr pAST;
     ULONG ulModeID, ulColorIndex, ulRefreshRate, ulRefreshRateIndex = 0;
@@ -628,7 +626,7 @@ Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_
     return (TRUE);
 }
 
-void vSetStdReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static void vSetStdReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
 
     PVBIOS_STDTABLE_STRUCT pStdModePtr;
@@ -685,7 +683,7 @@ void vSetStdReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
 
 }
 
-void
+static void
 vSetCRTCReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     ASTRecPtr pAST;
@@ -760,7 +758,7 @@ vSetCRTCReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInf
 
 }
 
-void vSetOffsetReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static void vSetOffsetReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     ASTRecPtr pAST;
     USHORT usOffset;
@@ -774,7 +772,7 @@ void vSetOffsetReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGA
 
 }
 
-void vSetDCLKReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static void vSetDCLKReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     PVBIOS_ENHTABLE_STRUCT pEnhModePtr;
     PVBIOS_DCLK_INFO pDCLKPtr;
@@ -795,7 +793,7 @@ void vSetDCLKReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMo
 }
 
 
-void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
 
     ASTRecPtr pAST;
@@ -853,7 +851,7 @@ void vSetExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
 
 }
 
-void vSetSyncReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static void vSetSyncReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     PVBIOS_ENHTABLE_STRUCT pEnhModePtr;
     ASTRecPtr pAST;
@@ -868,7 +866,7 @@ void vSetSyncReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMo
 
 }
 
-Bool bSetDACReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static Bool bSetDACReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     PVBIOS_DAC_INFO pDACPtr;
     ASTRecPtr pAST;
@@ -902,7 +900,7 @@ Bool bSetDACReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAMod
 
 }
 
-ULONG AST1180DCLKTable [] = {
+static ULONG AST1180DCLKTable [] = {
     0x0008676b,						/* 00: VCLK25_175	*/
     0x00086342,				        	/* 01: VCLK28_322	*/
     0x00086568,				        	/* 02: VCLK31_5         */
@@ -926,7 +924,7 @@ ULONG AST1180DCLKTable [] = {
     0x00040769,						/* 14: VCLK148_5        */
 };
 
-BOOL bSetAST1180CRTCReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static BOOL bSetAST1180CRTCReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
 
@@ -978,7 +976,7 @@ BOOL bSetAST1180CRTCReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INF
 
 } /* bSetAST1180CRTCReg */
 
-BOOL bSetAST1180OffsetReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static BOOL bSetAST1180OffsetReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulOffset, ulTermalCount;
@@ -993,7 +991,7 @@ BOOL bSetAST1180OffsetReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_I
 
 } /* bSetAST1180OffsetReg */
 
-BOOL bSetAST1180DCLKReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static BOOL bSetAST1180DCLKReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     PVBIOS_ENHTABLE_STRUCT pEnhModePtr;
     ASTRecPtr pAST = ASTPTR(pScrn);
@@ -1008,7 +1006,7 @@ BOOL bSetAST1180DCLKReg(ScrnInfoPtr pScrn,  DisplayModePtr mode, PVBIOS_MODE_INF
     return (TRUE);
 }
 
-BOOL bSetAST1180ExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static BOOL bSetAST1180ExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
     PVBIOS_ENHTABLE_STRUCT pEnhModePtr;
     ASTRecPtr pAST = ASTPTR(pScrn);
@@ -1061,7 +1059,7 @@ BOOL bSetAST1180ExtReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO 
 #define I2C_BASE_AST1180	0x80fcb000
 #define I2C_DEVICEADDR_AST1180	0x0EC			/* slave addr */
 
-void SetChrontelReg(ASTRecPtr pAST, UCHAR jChannel, UCHAR jIndex, UCHAR jData )
+static void SetChrontelReg(ASTRecPtr pAST, UCHAR jChannel, UCHAR jIndex, UCHAR jData )
 {
     ULONG ulData, ulI2CAddr, ulI2CPortBase;
     ULONG retry;
@@ -1117,7 +1115,7 @@ Exit_SetChrontelReg:
     ;
 }
 
-UCHAR GetChrontelReg(ASTRecPtr pAST, UCHAR jChannel, UCHAR jIndex)
+static UCHAR GetChrontelReg(ASTRecPtr pAST, UCHAR jChannel, UCHAR jIndex)
 {
     ULONG ulData, ulI2CAddr, ulI2CPortBase;
     UCHAR jData;
@@ -1176,7 +1174,7 @@ UCHAR GetChrontelReg(ASTRecPtr pAST, UCHAR jChannel, UCHAR jIndex)
     return (jData);
 }
 
-void vInitChontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
+static void vInitChontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
 
     PVBIOS_ENHTABLE_STRUCT pEnhModePtr = pVGAModeInfo->pEnhTableEntry;

@@ -63,8 +63,6 @@ extern Bool ASTUnmapMem(ScrnInfoPtr pScrn);
 extern Bool ASTMapMMIO(ScrnInfoPtr pScrn);
 extern void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 
-extern Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
-
 #ifdef HAVE_XAA_H
 extern Bool ASTAccelInit(ScreenPtr pScreen);
 #endif

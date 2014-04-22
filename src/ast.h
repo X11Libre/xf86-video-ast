@@ -342,6 +342,9 @@ Bool bASTInitHWC(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 void ASTDisableHWC(ScrnInfoPtr pScrn);
 #endif
 
+/* ast_mode.c */
+Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
+
 /* Include Files */
 #include "ast_mode.h"
 #include "ast_vgatool.h"
