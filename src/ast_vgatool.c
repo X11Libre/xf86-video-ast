@@ -110,123 +110,6 @@ void GetAST1180DRAMInfo(ScrnInfoPtr pScrn);
  */
 #define I2C_BASE	0x1e780000
 
-static void SetI2CReg(ScrnInfoPtr pScrn, UCHAR jChannel, UCHAR DeviceAddr, UCHAR jIndex, UCHAR jData )
-{
-    ASTRecPtr pAST = ASTPTR(pScrn);
-    ULONG ulData, ulI2CBase, ulI2CAddr;
-    UCHAR *ulI2CPortBase;
-    UCHAR *pjMMIOBase;
-    ULONG retry;
-
-    {
-        pjMMIOBase = pAST->MMIOVirtualAddr;
-        ulI2CBase = I2C_BASE;
-        ulI2CPortBase = pjMMIOBase + 0x1a000 + 0x40 * jChannel;
-        ulI2CAddr = DeviceAddr;
-    }
-
-    *(ULONG *) (pjMMIOBase + 0xF004) = ulI2CBase;
-    *(ULONG *) (pjMMIOBase + 0xF000) = 0x1;
-
-    *(ULONG *) (ulI2CPortBase + 0x00) = 0x0;
-    *(ULONG *) (ulI2CPortBase + 0x04) = 0x77743355;
-    *(ULONG *) (ulI2CPortBase + 0x08) = 0x0;
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x00) = 0x1;
-    *(ULONG *) (ulI2CPortBase + 0x0C) = 0xAF;
-    *(ULONG *) (ulI2CPortBase + 0x20) = ulI2CAddr;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x03;
-    retry = 0;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-        DelayUS(10);
-        if (retry++ > 1000)
-            goto Exit_SetI2CReg;
-    } while (!(ulData & 0x01));
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x20) = (ULONG) jIndex;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x02;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-    } while (!(ulData & 0x01));
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x20) = (ULONG) jData;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x02;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-    } while (!(ulData & 0x01));
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x0C) |= 0x10;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x20;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-    } while (!(ulData & 0x10));
-    *(ULONG *) (ulI2CPortBase + 0x0C) &= 0xffffffef;
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    DelayUS(10);
-
-Exit_SetI2CReg:
-    ;
-}
-
-static UCHAR GetI2CReg(ScrnInfoPtr pScrn, UCHAR jChannel, UCHAR DeviceAddr, UCHAR jIndex)
-{
-    ASTRecPtr pAST = ASTPTR(pScrn);
-    UCHAR jData;
-    ULONG ulData, ulI2CBase, ulI2CAddr;
-    UCHAR *ulI2CPortBase;
-    UCHAR *pjMMIOBase;
-    ULONG retry;
-
-    {
-        pjMMIOBase = pAST->MMIOVirtualAddr;
-        ulI2CBase = I2C_BASE;
-        ulI2CPortBase = pjMMIOBase + 0x1a000 + 0x40 * jChannel;
-        ulI2CAddr = DeviceAddr;
-    }
-
-    *(ULONG *) (pjMMIOBase + 0xF004) = ulI2CBase;
-    *(ULONG *) (pjMMIOBase + 0xF000) = 0x1;
-
-    *(ULONG *) (ulI2CPortBase + 0x00) = 0x0;
-    *(ULONG *) (ulI2CPortBase + 0x04) = 0x77743355;
-    *(ULONG *) (ulI2CPortBase + 0x08) = 0x0;
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x00) = 0x1;
-    *(ULONG *) (ulI2CPortBase + 0x0C) = 0xAF;
-    *(ULONG *) (ulI2CPortBase + 0x20) = ulI2CAddr;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x03;
-    retry = 0;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-        DelayUS(10);
-        if (retry++ > 1000)
-            return 0;
-    } while (!(ulData & 0x01));
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x20) = (ULONG) jIndex;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x02;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-    } while (!(ulData & 0x01));
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x20) = ulI2CAddr + 1;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x1B;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-    } while (!(ulData & 0x04));
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    *(ULONG *) (ulI2CPortBase + 0x0C) |= 0x10;
-    *(ULONG *) (ulI2CPortBase + 0x14) = 0x20;
-    do {
-        ulData = *(ULONG *) (ulI2CPortBase + 0x10);
-    } while (!(ulData & 0x10));
-    *(ULONG *) (ulI2CPortBase + 0x0C) &= 0xffffffef;
-    *(ULONG *) (ulI2CPortBase + 0x10) = 0xffffffff;
-    jData = (UCHAR) ((*(ULONG *) (ulI2CPortBase + 0x20) & 0xFF00) >> 8);
-
-    return (jData);
-}
 
 /*
  * DP501
@@ -3606,24 +3489,6 @@ static void clear_cmd_trigger(ScrnInfoPtr pScrn)
     SetIndexRegMask(CRTC_PORT, 0x9B, ~0x40, 0x00);
 }
 
-static Bool wait_fw_ready(ScrnInfoPtr pScrn)
-{
-    ASTRecPtr pAST = ASTPTR(pScrn);
-    ULONG WaitReady;
-    ULONG retry=0;
-
- 	do {
-        GetIndexRegMask(CRTC_PORT, 0xd2, 0xFF, WaitReady);
-        WaitReady &= 0x40;
-	 	DelayUS(100);
-    } while ( (!WaitReady) && (retry++ < 1000) );
-
-    if (retry < 1000)
-        return TRUE;
-    else
-        return FALSE;
-}
-
 static Bool write_cmd(ScrnInfoPtr pScrn, UCHAR data)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
@@ -3668,34 +3533,6 @@ static Bool write_data(ScrnInfoPtr pScrn, UCHAR data)
 
     send_nack(pScrn);
     return FALSE;
-}
-
-static Bool read_data(ScrnInfoPtr pScrn, UCHAR *data)
-{
-    ASTRecPtr pAST = ASTPTR(pScrn);
-    UCHAR Temp;
-
-    *(UCHAR *)(data) = 0;
-    if (wait_ack(pScrn) == FALSE) return FALSE;
-    GetIndexRegMask(CRTC_PORT, 0xd3, 0xFF, Temp);
-    *(UCHAR *)(data) = Temp;
-    send_ack(pScrn);
-    if (wait_nack(pScrn) == FALSE)
-    {
-	    send_nack(pScrn);
-        return FALSE;
-    }
-
-    send_nack(pScrn);
-    return TRUE;
-}
-
-static void clear_cmd(ScrnInfoPtr pScrn)
-{
-    ASTRecPtr pAST = ASTPTR(pScrn);
-
-    send_nack(pScrn);
-    SetIndexRegMask(CRTC_PORT, 0x9a, 0x00, 0x00);
 }
 
 static void SetDP501VideoOutput(ScrnInfoPtr pScrn, UCHAR Mode)
