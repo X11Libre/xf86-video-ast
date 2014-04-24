@@ -83,28 +83,6 @@ __inline void MOutdwm(UCHAR *mmiobase, ULONG r, ULONG v)
     *(volatile ULONG *) (mmiobase + 0x10000 + (r & 0x0000FFFF)) = v;
 }
 
-/* Prototype type declaration*/
-void vASTOpenKey(ScrnInfoPtr pScrn);
-Bool bASTRegInit(ScrnInfoPtr pScrn);
-void GetDRAMInfo(ScrnInfoPtr pScrn);
-ULONG GetVRAMInfo(ScrnInfoPtr pScrn);
-ULONG GetMaxDCLK(ScrnInfoPtr pScrn);
-void GetChipType(ScrnInfoPtr pScrn);
-void GetScratchOptions(ScrnInfoPtr pScrn);
-void vAST1000DisplayOn(ScrnInfoPtr pScrn);
-void vAST1000DisplayOff(ScrnInfoPtr pScrn);
-void ASTBlankScreen(ScrnInfoPtr pScrn, Bool unblack);
-void vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
-void vASTLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices, LOCO *colors, VisualPtr pVisual);
-void ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags);
-Bool GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
-void vInitDRAMReg(ScrnInfoPtr pScrn);
-Bool bIsVGAEnabled(ScrnInfoPtr pScrn);
-Bool InitVGA(ScrnInfoPtr pScrn, ULONG Flags);
-Bool GetVGAEDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
-Bool bInitAST1180(ScrnInfoPtr pScrn);
-void GetAST1180DRAMInfo(ScrnInfoPtr pScrn);
-
 /*
  * BMCI2C
  */
@@ -3641,7 +3619,7 @@ static BOOL LaunchM68K(ScrnInfoPtr pScrn)
 /*
  * DP501 external
  */
-Bool ReadEDID_M68K(ScrnInfoPtr pScrn, BYTE *pEDIDData)
+Bool ASTReadEDID_M68K(ScrnInfoPtr pScrn, BYTE *pEDIDData)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     UCHAR *mmiobase;
@@ -3674,7 +3652,7 @@ Bool ReadEDID_M68K(ScrnInfoPtr pScrn, BYTE *pEDIDData)
     return TRUE;
 } /* ReadEDID_M68K */
 
-UCHAR GetLinkMaxCLK(ScrnInfoPtr pScrn)
+UCHAR ASTGetLinkMaxCLK(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     UCHAR *mmiobase;
@@ -3705,7 +3683,7 @@ UCHAR GetLinkMaxCLK(ScrnInfoPtr pScrn)
 
     return MaxClk;
 
-} /* GetLinkMaxCLK */
+} /* ASTGetLinkMaxCLK */
 
 /*
  * VGA Modules
@@ -3737,7 +3715,7 @@ bASTRegInit(ScrnInfoPtr pScrn)
 }
 
 void
-GetDRAMInfo(ScrnInfoPtr pScrn)
+ASTGetDRAMInfo(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulRefPLL, ulDeNumerator, ulNumerator, ulDivider;
@@ -3827,10 +3805,10 @@ GetDRAMInfo(ScrnInfoPtr pScrn)
     }
     pAST->ulMCLK = ulRefPLL * (ulNumerator + 2) / ((ulDeNumerator + 2) * ulDivider * 1000);
 
-} /* GetDRAMInfo */
+} /* ASTGetDRAMInfo */
 
 ULONG
-GetVRAMInfo(ScrnInfoPtr pScrn)
+ASTGetVRAMInfo(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
    ULONG ulVRAMSize;
@@ -3876,7 +3854,7 @@ GetVRAMInfo(ScrnInfoPtr pScrn)
 }
 
 ULONG
-GetMaxDCLK(ScrnInfoPtr pScrn)
+ASTGetMaxDCLK(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
    UCHAR jReg;
@@ -3933,7 +3911,7 @@ GetMaxDCLK(ScrnInfoPtr pScrn)
 }
 
 void
-GetChipType(ScrnInfoPtr pScrn)
+ASTGetChipType(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
    ULONG ulData;
@@ -3965,7 +3943,7 @@ GetChipType(ScrnInfoPtr pScrn)
 }
 
 void
-GetScratchOptions(ScrnInfoPtr pScrn)
+ASTGetScratchOptions(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
    ULONG ulData;
@@ -4040,7 +4018,7 @@ GetScratchOptions(ScrnInfoPtr pScrn)
 } /* GetScratchOptions */
 
 void
-vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base)
+vASTSetStartAddressCRT1(ASTRecPtr pAST, ULONG base)
 {
     ULONG addr;
 
@@ -4251,7 +4229,7 @@ ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int fla
 #define I2C_DEVICEADDR_AST1180	0x0A0			/* slave addr */
 
 Bool
-GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
+ASTGetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG i, ulData;
@@ -4351,10 +4329,10 @@ GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
 
     return (TRUE);
 
-} /* GetVGA2EDID */
+} /* ASTGetVGA2EDID */
 
 /* Init VGA */
-Bool bIsVGAEnabled(ScrnInfoPtr pScrn)
+Bool bASTIsVGAEnabled(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST;
     UCHAR ch;
@@ -4385,7 +4363,7 @@ Bool bIsVGAEnabled(ScrnInfoPtr pScrn)
     return (0);
 }
 
-void vEnableVGA(ScrnInfoPtr pScrn)
+static void vEnableVGA(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST;
 
@@ -4396,28 +4374,28 @@ void vEnableVGA(ScrnInfoPtr pScrn)
 
 }
 
-UCHAR ExtRegInfo[] = {
+static UCHAR ExtRegInfo[] = {
     0x0F,
     0x04,
     0x1C,
     0xFF
 };
 
-UCHAR ExtRegInfo_AST2300A0[] = {
+static UCHAR ExtRegInfo_AST2300A0[] = {
     0x0F,
     0x04,
     0x1C,
     0xFF
 };
 
-UCHAR ExtRegInfo_AST2300[] = {
+static UCHAR ExtRegInfo_AST2300[] = {
     0x0F,
     0x04,
     0x1F,
     0xFF
 };
 
-void vSetDefExtReg(ScrnInfoPtr pScrn)
+static void vSetDefExtReg(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST;
     UCHAR i, jIndex, jReg, *pjExtRegInfo;
@@ -4476,7 +4454,7 @@ void vSetDefExtReg(ScrnInfoPtr pScrn)
 
 #define CBR_PATNUM_AST2150           8
 
-ULONG pattern_AST2150[14] ={
+static ULONG pattern_AST2150[14] ={
 0xFF00FF00,
 0xCC33CC33,
 0xAA55AA55,
@@ -4496,7 +4474,7 @@ typedef struct _AST2150DRAMParam {
     UCHAR	*pjMMIOVirtualAddress;
 } AST2150DRAMParam, *PAST2150DRAMParam;
 
-ULONG MMCTestBurst2_AST2150(PAST2150DRAMParam  param, ULONG datagen)
+static ULONG MMCTestBurst2_AST2150(PAST2150DRAMParam  param, ULONG datagen)
 {
   ULONG data, timeout;
   UCHAR *mmiobase;
@@ -4528,7 +4506,7 @@ ULONG MMCTestBurst2_AST2150(PAST2150DRAMParam  param, ULONG datagen)
   return(data);
 }
 
-ULONG MMCTestSingle2_AST2150(PAST2150DRAMParam  param, ULONG datagen)
+static ULONG MMCTestSingle2_AST2150(PAST2150DRAMParam  param, ULONG datagen)
 {
   ULONG data, timeout;
   UCHAR *mmiobase;
@@ -4550,7 +4528,7 @@ ULONG MMCTestSingle2_AST2150(PAST2150DRAMParam  param, ULONG datagen)
   return(data);
 }
 
-int CBRTest_AST2150(PAST2150DRAMParam  param)
+static int CBRTest_AST2150(PAST2150DRAMParam  param)
 {
   UCHAR *mmiobase;
 
@@ -4568,7 +4546,7 @@ int CBRTest_AST2150(PAST2150DRAMParam  param)
 
 }
 
-int CBRScan_AST2150(PAST2150DRAMParam  param, int busw)
+static int CBRScan_AST2150(PAST2150DRAMParam  param, int busw)
 {
   ULONG patcnt, loop;
   UCHAR *mmiobase;
@@ -4590,7 +4568,7 @@ int CBRScan_AST2150(PAST2150DRAMParam  param, int busw)
 
 }
 
-void CBRDLLI_AST2150(PAST2150DRAMParam  param, int busw)
+static void CBRDLLI_AST2150(PAST2150DRAMParam  param, int busw)
 {
   ULONG dllmin[4], dllmax[4], dlli, data, passcnt;
   UCHAR *mmiobase;
@@ -4633,7 +4611,7 @@ typedef struct _AST_DRAMStruct {
 
 } AST_DRAMStruct, *PAST_DRAMStruct;
 
-AST_DRAMStruct AST2000DRAMTableData[] = {
+static AST_DRAMStruct AST2000DRAMTableData[] = {
     { 0x0108, 0x00000000 },
     { 0x0120, 0x00004a21 },
     { 0xFF00, 0x00000043 },
@@ -4661,7 +4639,7 @@ AST_DRAMStruct AST2000DRAMTableData[] = {
     { 0xFFFF, 0xFFFFFFFF }
 };
 
-AST_DRAMStruct AST1100DRAMTableData[] = {
+static AST_DRAMStruct AST1100DRAMTableData[] = {
     { 0x2000, 0x1688a8a8 },
     { 0x2020, 0x000041f0 },
     { 0xFF00, 0x00000043 },
@@ -4714,7 +4692,7 @@ AST_DRAMStruct AST1100DRAMTableData[] = {
     { 0xffff, 0xffffffff },
 };
 
-AST_DRAMStruct AST2100DRAMTableData[] = {
+static AST_DRAMStruct AST2100DRAMTableData[] = {
     { 0x2000, 0x1688a8a8 },
     { 0x2020, 0x00004120 },
     { 0xFF00, 0x00000043 },
@@ -4767,7 +4745,7 @@ AST_DRAMStruct AST2100DRAMTableData[] = {
     { 0xffff, 0xffffffff },
 };
 
-void vInitDRAMReg(ScrnInfoPtr pScrn)
+static void vInitDRAMReg(ScrnInfoPtr pScrn)
 {
     AST_DRAMStruct *pjDRAMRegInfo;
     ASTRecPtr pAST = ASTPTR(pScrn);
@@ -4937,7 +4915,7 @@ ULONG pattern[8] ={
 0xF1E843C7,
 0x7C61D253};
 
-int MMCTestBurst(PAST2300DRAMParam  param, ULONG datagen)
+static int MMCTestBurst(PAST2300DRAMParam  param, ULONG datagen)
 {
   ULONG data, timeout;
   UCHAR *mmiobase;
@@ -4961,7 +4939,7 @@ int MMCTestBurst(PAST2300DRAMParam  param, ULONG datagen)
   return(1);
 }
 
-int MMCTestBurst2(PAST2300DRAMParam  param, ULONG datagen)
+static int MMCTestBurst2(PAST2300DRAMParam  param, ULONG datagen)
 {
   ULONG data, timeout;
   UCHAR *mmiobase;
@@ -4984,7 +4962,7 @@ int MMCTestBurst2(PAST2300DRAMParam  param, ULONG datagen)
   return(data);
 }
 
-int MMCTestSingle(PAST2300DRAMParam  param, ULONG datagen)
+static int MMCTestSingle(PAST2300DRAMParam  param, ULONG datagen)
 {
   ULONG data, timeout;
   UCHAR *mmiobase;
@@ -5008,7 +4986,7 @@ int MMCTestSingle(PAST2300DRAMParam  param, ULONG datagen)
   return(1);
 }
 
-int MMCTestSingle2(PAST2300DRAMParam  param, ULONG datagen)
+static int MMCTestSingle2(PAST2300DRAMParam  param, ULONG datagen)
 {
   ULONG data, timeout;
   UCHAR *mmiobase;
@@ -5031,7 +5009,7 @@ int MMCTestSingle2(PAST2300DRAMParam  param, ULONG datagen)
   return(data);
 }
 
-int CBRTest(PAST2300DRAMParam  param)
+static int CBRTest(PAST2300DRAMParam  param)
 {
   ULONG data;
   UCHAR *mmiobase;
@@ -5053,7 +5031,7 @@ int CBRTest(PAST2300DRAMParam  param)
   return(1);
 }
 
-int CBRScan(PAST2300DRAMParam  param)
+static int CBRScan(PAST2300DRAMParam  param)
 {
   ULONG data, data2, patcnt, loop;
   UCHAR *mmiobase;
@@ -5079,7 +5057,7 @@ int CBRScan(PAST2300DRAMParam  param)
   return(data2);
 }
 
-ULONG CBRTest2(PAST2300DRAMParam  param)
+static ULONG CBRTest2(PAST2300DRAMParam  param)
 {
   ULONG data;
   UCHAR *mmiobase;
@@ -5091,7 +5069,7 @@ ULONG CBRTest2(PAST2300DRAMParam  param)
   return(~data & 0xffff);
 }
 
-ULONG CBRScan2(PAST2300DRAMParam  param)
+static ULONG CBRScan2(PAST2300DRAMParam  param)
 {
   ULONG data, data2, patcnt, loop;
   UCHAR *mmiobase;
@@ -5117,14 +5095,14 @@ ULONG CBRScan2(PAST2300DRAMParam  param)
   return(data2);
 }
 
-ULONG CBRTest3(PAST2300DRAMParam  param)
+static ULONG CBRTest3(PAST2300DRAMParam  param)
 {
   if(!MMCTestBurst(param, 0)) return(0);
   if(!MMCTestSingle(param, 0)) return(0);
   return(1);
 }
 
-ULONG CBRScan3(PAST2300DRAMParam  param)
+static ULONG CBRScan3(PAST2300DRAMParam  param)
 {
   ULONG patcnt, loop;
   UCHAR *mmiobase;
@@ -5145,7 +5123,7 @@ ULONG CBRScan3(PAST2300DRAMParam  param)
   return(1);
 }
 
-Bool finetuneDQI_L(PAST2300DRAMParam  param)
+static Bool finetuneDQI_L(PAST2300DRAMParam  param)
 {
   ULONG gold_sadj[2], dllmin[16], dllmax[16], dlli, data, cnt, mask, passcnt, retry = 0;
   UCHAR *mmiobase;
@@ -5251,7 +5229,7 @@ FINETUNE_DONE:
 
 } /* finetuneDQI_L */
 
-void finetuneDQSI(PAST2300DRAMParam  param)
+static void finetuneDQSI(PAST2300DRAMParam  param)
 {
   ULONG dlli, dqsip, dqidly, cnt;
   ULONG reg_mcr18, reg_mcr0c, passcnt[2], diff;
@@ -5353,7 +5331,7 @@ void finetuneDQSI(PAST2300DRAMParam  param)
   MOutdwm(mmiobase, 0x1E6E0018, reg_mcr18);
 } /* finetuneDQSI */
 
-Bool CBRDLL2(PAST2300DRAMParam  param)
+static Bool CBRDLL2(PAST2300DRAMParam  param)
 {
   ULONG dllmin[2], dllmax[2], dlli, data, data2, passcnt, retry=0;
   UCHAR *mmiobase;
@@ -5415,7 +5393,7 @@ CBR_DONE2:
 
 } /* CBRDLL2 */
 
-void GetDDR2Info(PAST2300DRAMParam param)
+static void GetDDR2Info(PAST2300DRAMParam param)
 {
   UCHAR *mmiobase;
   ULONG trap, TRAP_AC2, TRAP_MRS;
@@ -5663,7 +5641,7 @@ void GetDDR2Info(PAST2300DRAMParam param)
 
 }
 
-void GetDDR3Info(PAST2300DRAMParam param)
+static void GetDDR3Info(PAST2300DRAMParam param)
 {
   UCHAR *mmiobase;
   ULONG trap, TRAP_AC2, TRAP_MRS;
@@ -5906,7 +5884,7 @@ void GetDDR3Info(PAST2300DRAMParam param)
 
 }
 
-void DDR2_Init(PAST2300DRAMParam param)
+static void DDR2_Init(PAST2300DRAMParam param)
 {
   ULONG data, data2, retry = 0;
   UCHAR *mmiobase;
@@ -6036,7 +6014,7 @@ DDR2_Init_Start:
 #endif
 }
 
-void DDR3_Init(PAST2300DRAMParam param)
+static void DDR3_Init(PAST2300DRAMParam param)
 {
   ULONG data, data2, retry = 0;
   UCHAR *mmiobase;
@@ -6162,7 +6140,7 @@ DDR3_Init_Start:
 #endif
 }
 
-void vInitAST2300DRAMReg(ScrnInfoPtr pScrn)
+static void vInitAST2300DRAMReg(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     AST2300DRAMParam param;
@@ -6222,7 +6200,7 @@ void vInitAST2300DRAMReg(ScrnInfoPtr pScrn)
 
 } /* vInitAST2300DRAMReg */
 
-void vGetDefaultSettings(ScrnInfoPtr pScrn)
+void static vGetDefaultSettings(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulData;
@@ -6259,7 +6237,7 @@ void vGetDefaultSettings(ScrnInfoPtr pScrn)
 
 } /* vGetDefaultSettings */
 
-Bool InitDVO(ScrnInfoPtr pScrn)
+static Bool InitDVO(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulData;
@@ -6327,7 +6305,7 @@ Bool InitDVO(ScrnInfoPtr pScrn)
     return TRUE;
 } /* InitDVO */
 
-void vInit3rdTX(ScrnInfoPtr pScrn)
+static void vInit3rdTX(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulData;
@@ -6366,7 +6344,7 @@ void vInit3rdTX(ScrnInfoPtr pScrn)
  * Flags: 0: POST init
  *        1: resume from power management
  */
-Bool InitVGA(ScrnInfoPtr pScrn, ULONG Flags)
+Bool ASTInitVGA(ScrnInfoPtr pScrn, ULONG Flags)
 {
    ASTRecPtr pAST;
    uint32_t ulData;
@@ -6595,7 +6573,7 @@ ReceiveI2CDataByte(ASTRecPtr pAST)
 }
 
 Bool
-GetVGAEDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
+ASTGetVGAEDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
 {
     ASTRecPtr pAST;
     UCHAR *pjDstEDID;
@@ -6661,9 +6639,9 @@ GetVGAEDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer)
 
     return (TRUE);
 
-} /* GetVGAEDID */
+} /* ASTGetVGAEDID */
 
-Bool bInitAST1180(ScrnInfoPtr pScrn)
+Bool bASTInitAST1180(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST;
     uint32_t ulData;
@@ -6698,9 +6676,9 @@ Bool bInitAST1180(ScrnInfoPtr pScrn)
 
     return (TRUE);
 
-} /* bInitAST1180 */
+} /* bASTInitAST1180 */
 
-void GetAST1180DRAMInfo(ScrnInfoPtr pScrn)
+void ASTGetAST1180DRAMInfo(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulData;
@@ -6753,9 +6731,9 @@ void GetAST1180DRAMInfo(ScrnInfoPtr pScrn)
     /* MCLK */
     pAST->ulMCLK = 200;
 
-} /* GetAST1180DRAMInfo */
+} /* ASTGetAST1180DRAMInfo */
 
-void vEnableASTVGAMMIO(ScrnInfoPtr pScrn)
+void vASTEnableVGAMMIO(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulData;

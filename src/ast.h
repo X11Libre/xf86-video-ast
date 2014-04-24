@@ -305,6 +305,30 @@ typedef struct _ASTRec {
 
 #define ASTPTR(p) ((ASTRecPtr)((p)->driverPrivate))
 
+/* ast_vgatool.c */
+extern Bool bASTIsVGAEnabled(ScrnInfoPtr pScrn);
+extern Bool ASTGetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
+extern void ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags);
+extern void vASTLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices, LOCO *colors, VisualPtr pVisual);
+extern void ASTBlankScreen(ScrnInfoPtr pScreen, Bool unblack);
+extern void vAST1000DisplayOn(ScrnInfoPtr pScrn);
+extern void vAST1000DisplayOff(ScrnInfoPtr pScrn);
+extern void vASTSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
+extern void ASTGetScratchOptions(ScrnInfoPtr pScrn);
+void ASTGetChipType(ScrnInfoPtr pScrn);
+ULONG ASTGetMaxDCLK(ScrnInfoPtr pScrn);
+ULONG ASTGetVRAMInfo(ScrnInfoPtr pScrn);
+void ASTGetDRAMInfo(ScrnInfoPtr pScrn);
+Bool bASTRegInit(ScrnInfoPtr pScrn);
+void vASTOpenKey(ScrnInfoPtr pScrn);
+Bool ASTReadEDID_M68K(ScrnInfoPtr pScrn, BYTE *pEDIDData);
+UCHAR ASTGetLinkMaxCLK(ScrnInfoPtr pScrn);
+Bool ASTGetVGAEDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
+Bool bASTInitAST1180(ScrnInfoPtr pScrn);
+void ASTGetAST1180DRAMInfo(ScrnInfoPtr pScrn);
+void vASTEnableVGAMMIO(ScrnInfoPtr pScrn);
+Bool ASTInitVGA(ScrnInfoPtr pScrn, ULONG Flags);
+
 /* Include Files */
 #include "ast_mode.h"
 #include "ast_vgatool.h"

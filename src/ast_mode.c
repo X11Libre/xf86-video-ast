@@ -53,9 +53,6 @@
 /* Driver specific headers */
 #include "ast.h"
 
-/* external reference fucntion */
-extern Bool bInitAST1180(ScrnInfoPtr pScrn);
-
 VBIOS_STDTABLE_STRUCT StdTable[] = {
     /* MD_2_3_400 */
     {
@@ -410,11 +407,6 @@ VBIOS_DAC_INFO DAC_VGA[] = {
 };
 
 /* extern. function */
-extern void vASTOpenKey(ScrnInfoPtr pScrn);
-extern Bool bASTRegInit(ScrnInfoPtr pScrn);
-extern void vAST1000DisplayOn(ScrnInfoPtr pScrn);
-extern void vAST1000DisplayOff(ScrnInfoPtr pScrn);
-
 extern Bool bEnable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern void vDisable2D(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 
@@ -450,7 +442,7 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
     /* set mode */
     if (pAST->jChipType == AST1180)
     {
-        bInitAST1180(pScrn);
+        bASTInitAST1180(pScrn);
 
         bSetAST1180CRTCReg(pScrn, mode, &vgamodeinfo);
         bSetAST1180OffsetReg(pScrn, mode, &vgamodeinfo);

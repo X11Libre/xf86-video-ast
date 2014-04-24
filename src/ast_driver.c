@@ -63,29 +63,7 @@ extern Bool ASTUnmapMem(ScrnInfoPtr pScrn);
 extern Bool ASTMapMMIO(ScrnInfoPtr pScrn);
 extern void ASTUnmapMMIO(ScrnInfoPtr pScrn);
 
-extern void vASTOpenKey(ScrnInfoPtr pScrn);
-extern Bool bASTRegInit(ScrnInfoPtr pScrn);
-extern void GetDRAMInfo(ScrnInfoPtr pScrn);
-extern ULONG GetVRAMInfo(ScrnInfoPtr pScrn);
-extern ULONG GetMaxDCLK(ScrnInfoPtr pScrn);
-extern void GetChipType(ScrnInfoPtr pScrn);
-extern void GetScratchOptions(ScrnInfoPtr pScrn);
-extern void vASTLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices, LOCO *colors, VisualPtr pVisual);
-extern void ASTDisplayPowerManagementSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags);
-extern void vSetStartAddressCRT1(ASTRecPtr pAST, ULONG base);
 extern Bool ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
-extern Bool GetVGA2EDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
-extern void vInitDRAMReg(ScrnInfoPtr pScrn);
-extern Bool bIsVGAEnabled(ScrnInfoPtr pScrn);
-extern void ASTBlankScreen(ScrnInfoPtr pScreen, Bool unblack);
-extern Bool InitVGA(ScrnInfoPtr pScrn, ULONG Flags);
-extern Bool GetVGAEDID(ScrnInfoPtr pScrn, unsigned char *pEDIDBuffer);
-extern Bool bInitAST1180(ScrnInfoPtr pScrn);
-extern void GetAST1180DRAMInfo(ScrnInfoPtr pScrn);
-extern void vEnableASTVGAMMIO(ScrnInfoPtr pScrn);
-
-extern Bool ReadEDID_M68K(ScrnInfoPtr pScrn, BYTE *pEDIDData);
-extern UCHAR GetLinkMaxCLK(ScrnInfoPtr pScrn);
 
 extern Bool bInitCMDQInfo(ScrnInfoPtr pScrn, ASTRecPtr pAST);
 extern Bool bEnableCMDQ(ScrnInfoPtr pScrn, ASTRecPtr pAST);
@@ -645,22 +623,22 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
        }
 
        /* Init AST1180 */
-       bInitAST1180(pScrn);
+       bASTInitAST1180(pScrn);
 
        /* Get AST1180 Information */
-       GetAST1180DRAMInfo(pScrn);
+       ASTGetAST1180DRAMInfo(pScrn);
        pScrn->videoRam = pAST->ulVRAMSize / 1024;
 
    }
    else
    {
        /* Enable VGA MMIO Access */
-       vEnableASTVGAMMIO(pScrn);
+       vASTEnableVGAMMIO(pScrn);
 
        /* Init VGA Adapter */
        if (!xf86IsPrimaryPci(pAST->PciInfo))
        {
-           InitVGA(pScrn, 0);
+           ASTInitVGA(pScrn, 0);
        }
 
        vASTOpenKey(pScrn);
@@ -672,16 +650,16 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
        else if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x20)
            pAST->jChipType = AST2300;
        else if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x10)
-           GetChipType(pScrn);
+           ASTGetChipType(pScrn);
        else
            pAST->jChipType = AST2000;
 
        /* Get Options from Scratch */
-       GetScratchOptions(pScrn);
+       ASTGetScratchOptions(pScrn);
 
        /* Get DRAM Info */
-       GetDRAMInfo(pScrn);
-       pAST->ulVRAMSize = GetVRAMInfo(pScrn);
+       ASTGetDRAMInfo(pScrn);
+       pAST->ulVRAMSize = ASTGetVRAMInfo(pScrn);
        pScrn->videoRam  = pAST->ulVRAMSize / 1024;
    }
 
@@ -713,7 +691,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    clockRanges = xnfcalloc(sizeof(ClockRange), 1);
    clockRanges->next = NULL;
    clockRanges->minClock = 9500;
-   clockRanges->maxClock = GetMaxDCLK(pScrn) * 1000;
+   clockRanges->maxClock = ASTGetMaxDCLK(pScrn) * 1000;
    clockRanges->clockIndex = -1;
    clockRanges->interlaceAllowed = FALSE;
    clockRanges->doubleScanAllowed = FALSE;
@@ -1104,7 +1082,7 @@ ASTAdjustFrame(ADJUST_FRAME_ARGS_DECL)
    base = y * pAST->VideoModeInfo.ScreenPitch + x * ((pAST->VideoModeInfo.bitsPerPixel + 1) / 8);
    /* base = base >> 2; */			/* DW unit */
 
-   vSetStartAddressCRT1(pAST, base);
+   vASTSetStartAddressCRT1(pAST, base);
 
 }
 
@@ -1116,14 +1094,14 @@ ASTEnterVT(VT_FUNC_ARGS_DECL)
    ASTRecPtr pAST = ASTPTR(pScrn);
 
    /* Fixed suspend can't resume issue */
-   if (!bIsVGAEnabled(pScrn))
+   if (!bASTIsVGAEnabled(pScrn))
    {
        if (pAST->jChipType == AST1180)
-           bInitAST1180(pScrn);
+           bASTInitAST1180(pScrn);
        else
        {
-           vEnableASTVGAMMIO(pScrn);
-           InitVGA(pScrn, 1);
+           vASTEnableVGAMMIO(pScrn);
+           ASTInitVGA(pScrn, 1);
        }
        ASTRestore(pScrn);
    }
@@ -1561,15 +1539,15 @@ ASTProbeDDC(ScrnInfoPtr pScrn, int index)
    if (xf86LoadSubModule(pScrn, "ddc"))
    {
       if (pAST->jChipType == AST1180)
-          Flags = GetVGA2EDID(pScrn, DDC_data);
+          Flags = ASTGetVGA2EDID(pScrn, DDC_data);
       else if (pAST->jTxChipType == Tx_DP501)
       {
-          Flags = ReadEDID_M68K(pScrn, DDC_data);
+          Flags = ASTReadEDID_M68K(pScrn, DDC_data);
           if (Flags == FALSE)
-              Flags = GetVGAEDID(pScrn, DDC_data);
+              Flags = ASTGetVGAEDID(pScrn, DDC_data);
       }
       else
-          Flags = GetVGAEDID(pScrn, DDC_data);
+          Flags = ASTGetVGAEDID(pScrn, DDC_data);
 
       if (Flags)
       {
@@ -1611,17 +1589,17 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
    if (xf86LoadSubModule(pScrn, "ddc"))
    {
       if (pAST->jChipType == AST1180)
-          Flags = GetVGA2EDID(pScrn, DDC_data);
+          Flags = ASTGetVGA2EDID(pScrn, DDC_data);
       else if (pAST->jTxChipType == Tx_DP501)
       {
 	      pAST->DP501_MaxVCLK = 0xFF;
-          Flags = ReadEDID_M68K(pScrn, DDC_data);
-          if (Flags) pAST->DP501_MaxVCLK = GetLinkMaxCLK(pScrn);
+          Flags = ASTReadEDID_M68K(pScrn, DDC_data);
+          if (Flags) pAST->DP501_MaxVCLK = ASTGetLinkMaxCLK(pScrn);
           else
-              Flags = GetVGAEDID(pScrn, DDC_data);
+              Flags = ASTGetVGAEDID(pScrn, DDC_data);
       }
       else
-          Flags = GetVGAEDID(pScrn, DDC_data);
+          Flags = ASTGetVGAEDID(pScrn, DDC_data);
 
       if (Flags)
       {
@@ -1637,7 +1615,7 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
 
       /* For VGA2 CLONE Support, ycchen@012508 */
       if ((xf86ReturnOptValBool(pAST->Options, OPTION_VGA2_CLONE, FALSE)) || pAST->VGA2Clone) {
-          if (GetVGA2EDID(pScrn, DDC_data) == TRUE) {
+          if (ASTGetVGA2EDID(pScrn, DDC_data) == TRUE) {
               xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Get VGA2 EDID Correctly!! \n");
               MonInfo2 = xf86InterpretEDID(pScrn->scrnIndex, DDC_data);
               if (MonInfo1 == NULL)	/* No DDC1 EDID */
@@ -1769,7 +1747,7 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
 
                } /* Check with VGA1 & VGA2 EDID */
 
-           } /* GetVGA2EDID */
+           } /* ASTGetVGA2EDID */
            else {
                xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Can't Get VGA2 EDID Correctly!! \n");
            }
