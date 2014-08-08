@@ -255,19 +255,25 @@ static BOOL LaunchM68K(ScrnInfoPtr pScrn)
     UCHAR *pFWAddr;
     UCHAR jReg;
 
-    Data = MIndwm(mmiobase, 0x1e6e2100) & 0x01;
-    if (!Data)	/* UEFI Driver Handling */
+    Data = MIndwm(mmiobase, 0x1e6e2100) & 0x03;
+    if (Data != 0x01)	/* UEFI Driver Handling */
+    {
+        /* Reset Co-processor */
+        MOutdwm(mmiobase, 0x1e6e2100, 0x03);
+        do {
+            Data = MIndwm(mmiobase, 0x1e6e2100);
+        } while (Data != 0x03);
+
+	if (pAST->pDP501FWBufferVirtualAddress)
 	{
-		if (pAST->pDP501FWBufferVirtualAddress)
-		{
-		    pFWAddr = pAST->pDP501FWBufferVirtualAddress;
-		    Len     = 32*1024;		/* 32K */
-	    }
-	    else
-	    {
-		    pFWAddr = AST_DP501_firmware;
+	    pFWAddr = pAST->pDP501FWBufferVirtualAddress;
+	    Len     = 32*1024;		/* 32K */
+	}
+	else
+	{
+	    pFWAddr = AST_DP501_firmware;
             Len     = sizeof(AST_DP501_firmware) / sizeof(AST_DP501_firmware[0]);
-	    }
+	}
 
         /* Get BootAddress */
         MOutdwm(mmiobase, 0x1e6e2000, 0x1688a8a8);				/* open passwd */
