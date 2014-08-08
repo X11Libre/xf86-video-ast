@@ -197,10 +197,12 @@ static VBIOS_ENHTABLE_STRUCT  Res1360x768Table[] = {
 };
 
 static VBIOS_ENHTABLE_STRUCT  Res1600x900Table[] = {
+    {2112, 1600, 88,168, 934,  900, 3, 5, VCLK118_25,	/* 60Hz CVT */
+      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x3A },
     {1760, 1600, 48, 32, 926,  900, 3, 5, VCLK97_75,	/* 60Hz CVT RB */
-      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x3A },
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 2, 0x3A },
     {1760, 1600, 48, 32, 926,  900, 3, 5, VCLK97_75,	/* end */
-      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x3A },
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 2, 0x3A },
 };
 
 static VBIOS_ENHTABLE_STRUCT  Res1920x1080Table[] = {
@@ -212,31 +214,30 @@ static VBIOS_ENHTABLE_STRUCT  Res1920x1080Table[] = {
 
 /* 16:10 */
 static VBIOS_ENHTABLE_STRUCT  Res1280x800Table[] = {
-    {1440, 1280, 48, 32,  823,  800, 3, 6, VCLK71,	/* 60Hz RB */
-      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 35 },
-    {1680, 1280, 72,128,  831,  800, 3, 6, VCLK83_5,	/* 60Hz */
-      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 2, 0x35 },
-    {1680, 1280, 72,128,  831,  800, 3, 6, VCLK83_5,	/* 60Hz */
-      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x35 },
-
+    {1680, 1280, 72,128,  831,  800, 3, 6, VCLK83_5,	/* 60Hz CVT */
+      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x35 },
+    {1440, 1280, 48, 32,  823,  800, 3, 6, VCLK71,		/* 60Hz CVT RB */
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 2, 35 },
+    {1440, 1280, 48, 32,  823,  800, 3, 6, VCLK71,		/* 60Hz CVT RB */
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 2, 35 },
 };
 
 static VBIOS_ENHTABLE_STRUCT  Res1440x900Table[] = {
-    {1600, 1440, 48, 32,  926,  900, 3, 6, VCLK88_75,	/* 60Hz RB */
-      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x36 },
-    {1904, 1440, 80,152,  934,  900, 3, 6, VCLK106_5,	/* 60Hz */
-      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 2, 0x36 },
-    {1904, 1440, 80,152,  934,  900, 3, 6, VCLK106_5,	/* 60Hz */
-      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x36 },
+    {1904, 1440, 80,152,  934,  900, 3, 6, VCLK106_5,	/* 60Hz CVT */
+      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x36 },
+    {1600, 1440, 48, 32,  926,  900, 3, 6, VCLK88_75,	/* 60Hz CVT RB */
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 2, 0x36 },
+    {1600, 1440, 48, 32,  926,  900, 3, 6, VCLK88_75,	/* 60Hz CVT RB */
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 2, 0x36 },
 };
 
 static VBIOS_ENHTABLE_STRUCT  Res1680x1050Table[] = {
-    {1840, 1680, 48, 32, 1080, 1050, 3, 6, VCLK119,	/* 60Hz RB */
-      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x37 },
-    {2240, 1680,104,176, 1089, 1050, 3, 6, VCLK146_25,	/* 60Hz */
-      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 2, 0x37 },
-    {2240, 1680,104,176, 1089, 1050, 3, 6, VCLK146_25,	/* 60Hz */
-      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 1, 0x37 },
+    {2240, 1680,104,176, 1089, 1050, 3, 6, VCLK146_25,	/* 60Hz CVT */
+      (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x37 },
+    {1840, 1680, 48, 32, 1080, 1050, 3, 6, VCLK119,		/* 60Hz CVT RB */
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 2, 0x37 },
+    {1840, 1680, 48, 32, 1080, 1050, 3, 6, VCLK119,		/* 60Hz CVT RB */
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 0xFF, 2, 0x37 },
 };
 
 static VBIOS_ENHTABLE_STRUCT  Res1920x1200Table[] = {
@@ -272,6 +273,8 @@ static VBIOS_DCLK_INFO DCLKTable [] = {
     {0x25, 0x65, 0x80},					/* 16: VCLK88.75    */
     {0x77, 0x58, 0x80},					/* 17: VCLK119      */
     {0x32, 0x67, 0x80},				    /* 18: VCLK85_5     */
+    {0x6a, 0x6d, 0x80},					/* 19: VCLK97_75	*/
+    {0x3b, 0x2c, 0x81},					/* 1A: VCLK118_25	*/
 };
 
 static VBIOS_DCLK_INFO DCLKTable_AST2100 [] = {
@@ -300,6 +303,8 @@ static VBIOS_DCLK_INFO DCLKTable_AST2100 [] = {
     {0x25, 0x65, 0x80},					/* 16: VCLK88.75    */
     {0x77, 0x58, 0x80},					/* 17: VCLK119      */
     {0x32, 0x67, 0x80},				    /* 18: VCLK85_5     */
+    {0x6a, 0x6d, 0x80},					/* 19: VCLK97_75	*/
+    {0x3b, 0x2c, 0x81},					/* 1A: VCLK118_25	*/
 };
 
 static VBIOS_DAC_INFO DAC_TEXT[] = {
@@ -555,24 +560,26 @@ static Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIO
     }
 
     /* Get Proper Mode Index */
-    ulRefreshRate = (mode->Clock * 1000) / (mode->HTotal * mode->VTotal);
-
-    while (pVGAModeInfo->pEnhTableEntry->ulRefreshRate < ulRefreshRate)
-    {
-        pVGAModeInfo->pEnhTableEntry++;
-        if ((pVGAModeInfo->pEnhTableEntry->ulRefreshRate > ulRefreshRate) ||
-            (pVGAModeInfo->pEnhTableEntry->ulRefreshRate == 0xFF))
-        {
-            pVGAModeInfo->pEnhTableEntry--;
-            break;
-        }
-    }
-
-    /* parsing for wide scrren reduced blank mode */
     if (pVGAModeInfo->pEnhTableEntry->Flags & WideScreenMode)
     {
-        if ((mode->Flags & V_PVSYNC) && (mode->Flags & V_NHSYNC))	/* CVT */
+        /* parsing for wide screen reduced blank mode */
+        if ((mode->Flags & V_NVSYNC) && (mode->Flags & V_PHSYNC))	/* CVT RB */
             pVGAModeInfo->pEnhTableEntry++;
+    }
+    else
+    {
+        ulRefreshRate = (mode->Clock * 1000) / (mode->HTotal * mode->VTotal);
+
+        while (pVGAModeInfo->pEnhTableEntry->ulRefreshRate < ulRefreshRate)
+        {
+ 	        pVGAModeInfo->pEnhTableEntry++;
+	        if ((pVGAModeInfo->pEnhTableEntry->ulRefreshRate > ulRefreshRate) ||
+	           (pVGAModeInfo->pEnhTableEntry->ulRefreshRate == 0xFF))
+	        {
+	            pVGAModeInfo->pEnhTableEntry--;
+	            break;
+	        }
+        }
     }
 
     /* Update mode CRTC info */
