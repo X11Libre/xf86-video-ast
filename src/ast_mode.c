@@ -465,6 +465,9 @@ ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
         vSetSyncReg(pScrn, mode, &vgamodeinfo);
         bSetDACReg(pScrn, mode, &vgamodeinfo);
 
+        /* clear video buffer to avoid display noise */
+        memset(pAST->FBVirtualAddr, 0x00, pAST->VideoModeInfo.ScreenPitch*pAST->VideoModeInfo.ScreenHeight);
+
         vAST1000DisplayOn(pScrn);
     }
 
