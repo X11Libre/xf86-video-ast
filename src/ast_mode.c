@@ -495,6 +495,8 @@ static Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIO
     ASTRecPtr pAST;
     ULONG ulModeID, ulColorIndex, ulRefreshRate, ulRefreshRateIndex = 0;
     ULONG ulHBorder, ulVBorder;
+    Bool check_sync;
+    PVBIOS_ENHTABLE_STRUCT loop, best = NULL;
 
     pAST = ASTPTR(pScrn);
 
@@ -560,27 +562,34 @@ static Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIO
     }
 
     /* Get Proper Mode Index */
-    if (pVGAModeInfo->pEnhTableEntry->Flags & WideScreenMode)
-    {
-        /* parsing for wide screen reduced blank mode */
-        if ((mode->Flags & V_NVSYNC) && (mode->Flags & V_PHSYNC))	/* CVT RB */
-            pVGAModeInfo->pEnhTableEntry++;
-    }
-    else
-    {
-        ulRefreshRate = (mode->Clock * 1000) / (mode->HTotal * mode->VTotal);
-
-        while (pVGAModeInfo->pEnhTableEntry->ulRefreshRate < ulRefreshRate)
-        {
- 	        pVGAModeInfo->pEnhTableEntry++;
-	        if ((pVGAModeInfo->pEnhTableEntry->ulRefreshRate > ulRefreshRate) ||
-	           (pVGAModeInfo->pEnhTableEntry->ulRefreshRate == 0xFF))
-	        {
-	            pVGAModeInfo->pEnhTableEntry--;
-	            break;
-	        }
-        }
-    }
+    ulRefreshRate = (mode->Clock * 1000) / (mode->HTotal * mode->VTotal) + 1;
+    loop = pVGAModeInfo->pEnhTableEntry;
+    check_sync = loop->Flags & WideScreenMode;
+    do {
+	while (loop->ulRefreshRate != 0xff) {
+		if ((check_sync) &&
+		    (((mode->Flags & V_NVSYNC)  &&
+		      (loop->Flags & PVSync))  ||
+		     ((mode->Flags & V_PVSYNC)  &&
+		      (loop->Flags & NVSync))  ||
+		     ((mode->Flags & V_NHSYNC)  &&
+		      (loop->Flags & PHSync))  ||
+		     ((mode->Flags & V_PHSYNC)  &&
+		      (loop->Flags & NHSync)))) {
+			loop++;
+			continue;
+		}
+	if (loop->ulRefreshRate <= ulRefreshRate
+		    && (!best || loop->ulRefreshRate > best->ulRefreshRate))
+			best = loop;
+			loop++;
+	}
+	if (best || !check_sync)
+		break;
+	check_sync = 0;
+    } while (1);
+    if (best)
+	pVGAModeInfo->pEnhTableEntry = best;
 
     /* Update mode CRTC info */
     ulHBorder = (pVGAModeInfo->pEnhTableEntry->Flags & HBorder) ? 8:0;
