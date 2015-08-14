@@ -78,6 +78,7 @@
 #define	SyncPN			(PVSync | NHSync)
 #define	SyncNP			(NVSync | PHSync)
 #define	SyncNN			(NVSync | NHSync)
+#define AST2500PreCatchCRT		0x00004000
 
 /* DAC Definition */
 #define DAC_NUM_TEXT		64
