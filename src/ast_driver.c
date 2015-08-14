@@ -623,15 +623,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
        /* Enable VGA MMIO Access */
        vASTEnableVGAMMIO(pScrn);
 
-       /* Init VGA Adapter */
-       if (!xf86IsPrimaryPci(pAST->PciInfo))
-       {
-           ASTInitVGA(pScrn, 0);
-       }
-
-       vASTOpenKey(pScrn);
-       bASTRegInit(pScrn);
-
        /* Get Chip Type */
        if (PCI_DEV_REVISION(pAST->PciInfo) >= 0x30)
            pAST->jChipType = AST2400;
@@ -641,6 +632,15 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
            ASTGetChipType(pScrn);
        else
            pAST->jChipType = AST2000;
+
+       /* Init VGA Adapter */
+       if (!xf86IsPrimaryPci(pAST->PciInfo))
+       {
+           ASTInitVGA(pScrn, 0);
+       }
+
+       vASTOpenKey(pScrn);
+       bASTRegInit(pScrn);
 
        /* Get Options from Scratch */
        ASTGetScratchOptions(pScrn);
