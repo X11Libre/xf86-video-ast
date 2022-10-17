@@ -3397,7 +3397,7 @@ static void vInitAST2500DRAMReg(ScrnInfoPtr pScrn)
 
 } /* vInitAST2500DRAMReg */
 
-void static vGetDefaultSettings(ScrnInfoPtr pScrn)
+static void vGetDefaultSettings(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulData;
