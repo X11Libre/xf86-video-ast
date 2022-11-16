@@ -215,7 +215,7 @@ static VBIOS_ENHTABLE_STRUCT  Res1920x1080Table[] = {
 /* 16:10 */
 static VBIOS_ENHTABLE_STRUCT  Res1280x800Table[] = {
     {1440, 1280, 48, 32,  823,  800, 3, 6, VCLK71,		/* 60Hz CVT RB */
-      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo | AST2500PreCatchCRT), 60, 2, 35 },
+      (SyncNP | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo | AST2500PreCatchCRT), 60, 2, 0x35 },
     {1680, 1280, 72,128,  831,  800, 3, 6, VCLK83_5,	/* 60Hz CVT */
       (SyncPN | Charx8Dot | LineCompareOff | WideScreenMode | NewModeInfo), 60, 1, 0x35 },
     {1680, 1280, 72,128,  831,  800, 3, 6, VCLK83_5,	/* end */
