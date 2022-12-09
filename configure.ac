@@ -23,8 +23,8 @@
 # Initialize Autoconf
 AC_PREREQ([2.60])
 AC_INIT([xf86-video-ast],
-        [1.1.5],
-        [https://gitlab.freedesktop.org/xorg/driver/xf86-video-ast/issues],
+        [1.1.6],
+        [https://gitlab.freedesktop.org/xorg/driver/xf86-video-ast/-/issues],
         [xf86-video-ast])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
