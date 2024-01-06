@@ -1706,7 +1706,7 @@ void ASTDisplayVideo(ScrnInfoPtr pScrn, ASTPortPrivPtr pPriv, RegionPtr clipBoxe
     pBox = REGION_RECTS(clipBoxes);
     nBoxs = REGION_NUM_RECTS(clipBoxes);
 
-    xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "MMIO=%x,pBox=%x, nBoxs=%x\n", pAST->MMIO2D, pBox, nBoxs);
+    xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "MMIO=%x,pBox=%lx, nBoxs=%x\n", pAST->MMIO2D, (uintptr_t) pBox, nBoxs);
 
     if(0==pPriv->drw_w || 0==pPriv->drw_h)
     {
