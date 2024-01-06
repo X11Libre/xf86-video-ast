@@ -861,9 +861,11 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
    }
 
 #if	!(defined(__sparc__)) && !(defined(__mips__))
-   vgaHWPtr hwp;
-   hwp = VGAHWPTR(pScrn);
-   vgaHWSetMmioFuncs(hwp, pAST->MMIOVirtualAddr, 0);
+   {
+       vgaHWPtr hwp;
+       hwp = VGAHWPTR(pScrn);
+       vgaHWSetMmioFuncs(hwp, pAST->MMIOVirtualAddr, 0);
+   }
 #endif
 
    vFillASTModeInfo (pScrn);
@@ -1795,11 +1797,13 @@ ASTModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
     if (!ASTSetMode(pScrn, mode))
       return FALSE;
 #else
-    vgaHWPtr hwp;
+    {
+        vgaHWPtr hwp;
 
-    hwp = VGAHWPTR(pScrn);
+        hwp = VGAHWPTR(pScrn);
 
-    vgaHWUnlock(hwp);
+        vgaHWUnlock(hwp);
+    }
 
     if (!vgaHWInit(pScrn, mode))
       return FALSE;
