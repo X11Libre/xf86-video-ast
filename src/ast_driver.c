@@ -678,7 +678,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pScrn->monitor->DDC = ASTDoDDC(pScrn, pAST->pEnt->index);
 
    /* Mode Valid */
-   clockRanges = xnfcalloc(sizeof(ClockRange), 1);
+   clockRanges = XNFcallocarray(sizeof(ClockRange), 1);
    clockRanges->next = NULL;
    clockRanges->minClock = 9500;
    clockRanges->maxClock = ASTGetMaxDCLK(pScrn) * 1000;
@@ -1253,7 +1253,7 @@ ASTGetRec(ScrnInfoPtr pScrn)
    if (pScrn->driverPrivate)
       return TRUE;
 
-   pScrn->driverPrivate = xnfcalloc(sizeof(ASTRec), 1);
+   pScrn->driverPrivate = XNFcallocarray(sizeof(ASTRec), 1);
    return TRUE;
 }
 
