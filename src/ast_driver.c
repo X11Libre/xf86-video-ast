@@ -2244,11 +2244,7 @@ static XF86VideoAdaptorPtr ASTSetupImageVideo(ScreenPtr pScreen)
     pPriv->hue          = 0;
 
     /* gotta uninit this someplace */
-#if defined(REGION_NULL)
     REGION_NULL(pScreen, &pPriv->clip);
-#else
-    REGION_INIT(pScreen, &pPriv->clip, NullBox, 0);
-#endif
 
 	pAST->adaptor = adapt;
 
