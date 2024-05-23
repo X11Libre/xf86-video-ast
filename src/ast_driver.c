@@ -55,19 +55,19 @@ static void ASTIdentify(int flags);
 const OptionInfoRec *ASTAvailableOptions(int chipid, int busid);
 static Bool ASTProbe(DriverPtr drv, int flags);
 static Bool ASTPreInit(ScrnInfoPtr pScrn, int flags);
-static Bool ASTScreenInit(SCREEN_INIT_ARGS_DECL);
-Bool ASTSwitchMode(SWITCH_MODE_ARGS_DECL);
-void ASTAdjustFrame(ADJUST_FRAME_ARGS_DECL);
-static Bool ASTEnterVT(VT_FUNC_ARGS_DECL);
-static void ASTLeaveVT(VT_FUNC_ARGS_DECL);
-static void ASTFreeScreen(FREE_SCREEN_ARGS_DECL);
-static ModeStatus ASTValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode, Bool verbose, int flags);
+static Bool ASTScreenInit(ScreenPtr pScreen, int argc, char **argv);
+Bool ASTSwitchMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
+void ASTAdjustFrame(ScrnInfoPtr pScrn, int x, int y);
+static Bool ASTEnterVT(ScrnInfoPtr pScrn);
+static void ASTLeaveVT(ScrnInfoPtr pScrn);
+static void ASTFreeScreen(ScrnInfoPtr pScrn);
+static ModeStatus ASTValidMode(ScrnInfoPtr pScrn, DisplayModePtr mode, Bool verbose, int flags);
 
 /* Internally used functions */
 static Bool ASTGetRec(ScrnInfoPtr pScrn);
 static void ASTFreeRec(ScrnInfoPtr pScrn);
 static Bool ASTSaveScreen(ScreenPtr pScreen, Bool unblack);
-static Bool ASTCloseScreen(CLOSE_SCREEN_ARGS_DECL);
+static Bool ASTCloseScreen(ScreenPtr pScreen);
 static void ASTSave(ScrnInfoPtr pScrn);
 static void ASTRestore(ScrnInfoPtr pScrn);
 static void ASTProbeDDC(ScrnInfoPtr pScrn, int index);
@@ -762,7 +762,7 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 
 
 static Bool
-ASTScreenInit(SCREEN_INIT_ARGS_DECL)
+ASTScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
    ScrnInfoPtr pScrn;
    ASTRecPtr pAST;
@@ -818,7 +818,7 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
    }
 
    ASTSaveScreen(pScreen, FALSE);
-   ASTAdjustFrame(ADJUST_FRAME_ARGS(pScrn, pScrn->frameX0, pScrn->frameY0));
+   ASTAdjustFrame(pScrn, pScrn->frameX0, pScrn->frameY0);
 
    miClearVisualTypes();
 
@@ -953,9 +953,8 @@ ASTScreenInit(SCREEN_INIT_ARGS_DECL)
 
 
 Bool
-ASTSwitchMode(SWITCH_MODE_ARGS_DECL)
+ASTSwitchMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
 {
-   SCRN_INFO_PTR(arg);
    ASTRecPtr pAST = ASTPTR(pScrn);
 
    /* VideoMode validate */
@@ -993,9 +992,8 @@ ASTSwitchMode(SWITCH_MODE_ARGS_DECL)
 }
 
 void
-ASTAdjustFrame(ADJUST_FRAME_ARGS_DECL)
+ASTAdjustFrame(ScrnInfoPtr pScrn, int x, int y)
 {
-   SCRN_INFO_PTR(arg);
    ASTRecPtr   pAST  = ASTPTR(pScrn);
    ULONG base;
 
@@ -1008,9 +1006,8 @@ ASTAdjustFrame(ADJUST_FRAME_ARGS_DECL)
 
 /* enter into X Server */
 static Bool
-ASTEnterVT(VT_FUNC_ARGS_DECL)
+ASTEnterVT(ScrnInfoPtr pScrn)
 {
-   SCRN_INFO_PTR(arg);
    ASTRecPtr pAST = ASTPTR(pScrn);
 
    /* Fixed suspend can't resume issue */
@@ -1028,7 +1025,7 @@ ASTEnterVT(VT_FUNC_ARGS_DECL)
 
    if (!ASTModeInit(pScrn, pScrn->currentMode))
       return FALSE;
-   ASTAdjustFrame(ADJUST_FRAME_ARGS(pScrn, pScrn->frameX0, pScrn->frameY0));
+   ASTAdjustFrame(pScrn, pScrn->frameX0, pScrn->frameY0);
 
    return TRUE;
 
@@ -1036,10 +1033,8 @@ ASTEnterVT(VT_FUNC_ARGS_DECL)
 
 /* leave X server */
 static void
-ASTLeaveVT(VT_FUNC_ARGS_DECL)
+ASTLeaveVT(ScrnInfoPtr pScrn)
 {
-
-   SCRN_INFO_PTR(arg);
    ASTRecPtr pAST = ASTPTR(pScrn);
 #if	!(defined(__sparc__)) && !(defined(__mips__))
    vgaHWPtr hwp = VGAHWPTR(pScrn);
@@ -1073,9 +1068,8 @@ ASTLeaveVT(VT_FUNC_ARGS_DECL)
 }
 
 static void
-ASTFreeScreen(FREE_SCREEN_ARGS_DECL)
+ASTFreeScreen(ScrnInfoPtr pScrn)
 {
-   SCRN_INFO_PTR(arg);
    ASTFreeRec(pScrn);
 #if	!(defined(__sparc__)) && !(defined(__mips__))
    if (xf86LoaderCheckSymbol("vgaHWFreeHWRec"))
@@ -1084,9 +1078,8 @@ ASTFreeScreen(FREE_SCREEN_ARGS_DECL)
 }
 
 static ModeStatus
-ASTValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode, Bool verbose, int flags)
+ASTValidMode(ScrnInfoPtr pScrn, DisplayModePtr mode, Bool verbose, int flags)
 {
-   SCRN_INFO_PTR(arg);
    ASTRecPtr   pAST  = ASTPTR(pScrn);
    ModeStatus Flags = MODE_NOMODE;
    UCHAR jReg;
@@ -1219,7 +1212,7 @@ ASTSaveScreen(ScreenPtr pScreen, Bool unblack)
 }
 
 static Bool
-ASTCloseScreen(CLOSE_SCREEN_ARGS_DECL)
+ASTCloseScreen(ScreenPtr pScreen)
 {
    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
    ASTRecPtr pAST = ASTPTR(pScrn);
@@ -1275,7 +1268,7 @@ ASTCloseScreen(CLOSE_SCREEN_ARGS_DECL)
 
    pScrn->vtSema = FALSE;
    pScreen->CloseScreen = pAST->CloseScreen;
-   return (*pScreen->CloseScreen) (CLOSE_SCREEN_ARGS);
+   return (*pScreen->CloseScreen) (pScreen);
 }
 
 static void

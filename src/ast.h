@@ -36,8 +36,6 @@
 
 #include "ast_pcirename.h"
 
-#include "compat-api.h"
-
 #ifdef	Support_ShadowFB
 #include "shadow.h"
 #endif
