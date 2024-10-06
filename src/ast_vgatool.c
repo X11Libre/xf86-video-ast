@@ -1161,7 +1161,7 @@ static void vSetDefExtReg(ScrnInfoPtr pScrn)
 
     /* Enable RAMDAC for A1, ycchen@113005 */
     jReg = 0x04;
-    if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) || (pAST->jChipType == AST2400))
+    if ((pAST->jChipType == AST2300) || (pAST->jChipType == AST2400) || (pAST->jChipType == AST2500))
         jReg |= 0x20;
     SetIndexRegMask(CRTC_PORT,0xB6, 0xFF, jReg);
 
