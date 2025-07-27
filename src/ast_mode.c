@@ -493,7 +493,7 @@ Bool
 ASTSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
 {
     ASTRecPtr pAST;
-    VBIOS_MODE_INFO vgamodeinfo;
+    VBIOS_MODE_INFO vgamodeinfo = { 0 };
 
     pAST = ASTPTR(pScrn);
 
