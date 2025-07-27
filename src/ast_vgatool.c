@@ -1971,7 +1971,7 @@ FINETUNE_DONE:
 
 static void finetuneDQSI(PAST2300DRAMParam  param)
 {
-  ULONG dlli, dqsip, dqidly, cnt;
+  ULONG dlli, dqsip, dqidly;
   ULONG reg_mcr18, reg_mcr0c, passcnt[2], diff;
   ULONG g_dqidly, g_dqsip, g_margin, g_side;
   unsigned short pass[32][2][2];
