@@ -1485,9 +1485,9 @@ ASTDoDDC(ScrnInfoPtr pScrn, int index)
 
    xf86MonPtr MonInfo1 = NULL, MonInfo2 = NULL;
    unsigned long i, j, k;
-   struct monitor_ranges ranges, ranges1, ranges2;
+   struct monitor_ranges ranges, ranges1 = {0}, ranges2 = {0};
    int DTSelect, dclock1=0, h_active1=0, v_active1=0, dclock2=0, h_active2=0, v_active2=0;
-   struct std_timings stdtiming, *stdtiming1, *stdtiming2;
+   struct std_timings stdtiming, *stdtiming1 = {0}, *stdtiming2 = {0};
 
    /* Honour Option "noDDC" */
    if (xf86ReturnOptValBool(pAST->Options, OPTION_NO_DDC, FALSE)) {
