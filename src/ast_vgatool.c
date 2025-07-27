@@ -2073,7 +2073,7 @@ static void finetuneDQSI(PAST2300DRAMParam  param)
 
 static Bool CBRDLL2(PAST2300DRAMParam  param)
 {
-  ULONG dllmin[2], dllmax[2], dlli, data, data2, passcnt, retry=0;
+  ULONG dllmin[2], dllmax[2], dlli, data, passcnt, retry=0;
   UCHAR *mmiobase;
   BOOL status = FALSE;
 
