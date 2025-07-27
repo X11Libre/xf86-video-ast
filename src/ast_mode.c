@@ -1284,8 +1284,6 @@ static UCHAR GetChrontelReg(ASTRecPtr pAST, UCHAR jChannel, UCHAR jIndex)
 
 static void vInitChrontelReg(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIOS_MODE_INFO pVGAModeInfo)
 {
-
-    PVBIOS_ENHTABLE_STRUCT pEnhModePtr = pVGAModeInfo->pEnhTableEntry;
     ASTRecPtr pAST = ASTPTR(pScrn);
     ULONG ulDCLK = 65;					/* todo */
     UCHAR jReg;
