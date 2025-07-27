@@ -2884,7 +2884,7 @@ static void vInitAST2300DRAMReg(ScrnInfoPtr pScrn)
 {
     ASTRecPtr pAST = ASTPTR(pScrn);
     AST2300DRAMParam param;
-    ULONG i, ulTemp;
+    ULONG ulTemp;
     UCHAR jReg;
 
     GetIndexRegMask(CRTC_PORT, 0xD0, 0xFF, jReg);
