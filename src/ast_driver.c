@@ -1797,7 +1797,6 @@ static XF86AttributeRec ASTAttributes[NUM_ATTRIBUTES] =
 static void ASTStopVideo(ScrnInfoPtr pScrn, pointer data, Bool exit)
 {
     ASTPortPrivPtr pPriv = (ASTPortPrivPtr)data;
-    ASTPtr pAST = ASTPTR(pScrn);
 
     REGION_EMPTY(pScrn->pScreen, &pPriv->clip);
 
