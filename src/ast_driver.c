@@ -298,6 +298,7 @@ ASTProbe(DriverPtr drv, int flags)
 
 	        foundScreen = TRUE;
 
+		free(pEnt);
 	    } /* end of if */
         }  /* end of for-loop */
     } /* end of if flags */
