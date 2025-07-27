@@ -1207,8 +1207,8 @@ ASTSaveScreen(ScreenPtr pScreen, Bool unblack)
    if ((pScrn != NULL) && pScrn->vtSema) {
      ASTBlankScreen(pScrn, unblack);
    }
-   return (TRUE);
 #endif
+   return (TRUE);
 }
 
 static Bool
