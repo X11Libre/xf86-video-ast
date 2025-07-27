@@ -644,10 +644,10 @@ static Bool bGetAST1000VGAModeInfo(ScrnInfoPtr pScrn, DisplayModePtr mode, PVBIO
 			loop++;
 			continue;
 		}
-	if (loop->ulRefreshRate <= ulRefreshRate
+		if (loop->ulRefreshRate <= ulRefreshRate
 		    && (!best || loop->ulRefreshRate > best->ulRefreshRate))
 			best = loop;
-			loop++;
+		loop++;
 	}
 	if (best || !check_sync)
 		break;
