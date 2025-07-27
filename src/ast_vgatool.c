@@ -1270,10 +1270,6 @@ static ULONG MMCTestSingle2_AST2150(PAST2150DRAMParam  param, ULONG datagen)
 
 static int CBRTest_AST2150(PAST2150DRAMParam  param)
 {
-  UCHAR *mmiobase;
-
-  mmiobase = param->pjMMIOVirtualAddress;
-
   if(MMCTestBurst2_AST2150(param, 0) ) return(0);
   if(MMCTestBurst2_AST2150(param, 1) ) return(0);
   if(MMCTestBurst2_AST2150(param, 2) ) return(0);
@@ -1752,9 +1748,6 @@ static int MMCTestSingle2(PAST2300DRAMParam  param, ULONG datagen)
 static int CBRTest(PAST2300DRAMParam  param)
 {
   ULONG data;
-  UCHAR *mmiobase;
-
-  mmiobase = param->pjMMIOVirtualAddress;
 
   data  = MMCTestSingle2(param, 0);  if((data & 0xff) && (data & 0xff00)) return(0);
   data |= MMCTestBurst2(param, 00);  if((data & 0xff) && (data & 0xff00)) return(0);
@@ -1800,9 +1793,6 @@ static int CBRScan(PAST2300DRAMParam  param)
 static ULONG CBRTest2(PAST2300DRAMParam  param)
 {
   ULONG data;
-  UCHAR *mmiobase;
-
-  mmiobase = param->pjMMIOVirtualAddress;
 
   data  = MMCTestBurst2(param, 0);  if(data == 0xffff) return(0);
   data |= MMCTestSingle2(param, 0); if(data == 0xffff) return(0);
