@@ -3643,12 +3643,9 @@ I2CReadData(ASTRecPtr pAST)
 static void
 I2CDelay(ASTRecPtr pAST)
 {
-    ULONG 	i;
-    UCHAR       jtemp;
-
-    for (i=0;i<150;i++)
-        jtemp = GetReg(SEQ_PORT);
-
+    /* calling GetReg() several times in order to spend some time */
+    for (int i=0; i<150; i++)
+        GetReg(SEQ_PORT);
 }
 
 static void
