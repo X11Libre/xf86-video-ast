@@ -51,6 +51,7 @@ AC_ARG_WITH(xorg-module-dir,
                            [Default xorg module directory]),
             [moduledir="$withval"],
             [moduledir=`$PKG_CONFIG --variable=moduledir xorg-server`])
+AC_SUBST([moduledir])
 
 # Store the list of server defined optional extensions in REQUIRED_MODULES
 XORG_DRIVER_CHECK_EXT(XV, videoproto)
@@ -73,7 +74,6 @@ if test "x$XSERVER_LIBPCIACCESS" = xyes; then
 fi
 AM_CONDITIONAL(XSERVER_LIBPCIACCESS, test "x$XSERVER_LIBPCIACCESS" = xyes)
 
-AC_SUBST([moduledir])
 
 DRIVER_NAME=nv
 AC_SUBST([DRIVER_NAME])
