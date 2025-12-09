@@ -74,10 +74,6 @@ if test "x$XSERVER_LIBPCIACCESS" = xyes; then
 fi
 AM_CONDITIONAL(XSERVER_LIBPCIACCESS, test "x$XSERVER_LIBPCIACCESS" = xyes)
 
-
-DRIVER_NAME=nv
-AC_SUBST([DRIVER_NAME])
-
 AC_CONFIG_FILES([
                 Makefile
                 src/Makefile
