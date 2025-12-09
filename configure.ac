@@ -25,7 +25,7 @@ AC_PREREQ([2.60])
 AC_INIT([xlibre-xf86-video-ast],
         [1.2.0],
         [https://github.com/X11Libre/xf86-video-ast/issues],
-        [xf86-video-ast])
+        [xlibre-xf86-video-ast])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(.)
