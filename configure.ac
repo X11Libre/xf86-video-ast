@@ -74,8 +74,5 @@ if test "x$XSERVER_LIBPCIACCESS" = xyes; then
 fi
 AM_CONDITIONAL(XSERVER_LIBPCIACCESS, test "x$XSERVER_LIBPCIACCESS" = xyes)
 
-AC_CONFIG_FILES([
-                Makefile
-                src/Makefile
-])
+AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
