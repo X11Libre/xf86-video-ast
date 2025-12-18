@@ -215,12 +215,7 @@ typedef struct _ASTPortPrivRec{
 typedef struct _ASTRec {
 
     EntityInfoPtr 	pEnt;
-#ifndef XSERVER_LIBPCIACCESS
-	pciVideoPtr		PciInfo;
-	PCITAG			PciTag;
-#else
-	struct pci_device       *PciInfo;
-#endif
+    struct pci_device       *PciInfo;
 
     OptionInfoPtr 	Options;
     DisplayModePtr  ModePtr;

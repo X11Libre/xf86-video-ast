@@ -53,11 +53,6 @@ ASTMapMem(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
 
-#ifndef XSERVER_LIBPCIACCESS
-   pAST->FBVirtualAddr = xf86MapPciMem(pScrn->scrnIndex, VIDMEM_FRAMEBUFFER,
-				 pAST->PciTag,
-				 pAST->FBPhysAddr, pAST->FbMapSize);
-#else
    {
      void** result = (void**)&pAST->FBVirtualAddr;
      int err = pci_device_map_range(pAST->PciInfo,
@@ -70,7 +65,6 @@ ASTMapMem(ScrnInfoPtr pScrn)
      if (err)
 			return FALSE;
    }
-#endif
 
    if (!pAST->FBVirtualAddr)
       return FALSE;
@@ -83,12 +77,7 @@ ASTUnmapMem(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
 
-#ifndef XSERVER_LIBPCIACCESS
-   xf86UnMapVidMem(pScrn->scrnIndex, (pointer) pAST->FBVirtualAddr,
-		   pAST->FbMapSize);
-#else
    pci_device_unmap_range(pAST->PciInfo, pAST->FBVirtualAddr, pAST->FbMapSize);
-#endif
 
    pAST->FBVirtualAddr = 0;
 
@@ -99,21 +88,7 @@ Bool
 ASTMapMMIO(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
-#ifndef XSERVER_LIBPCIACCESS
-   int mmioFlags;
 
-#if !defined(__alpha__)
-   mmioFlags = VIDMEM_MMIO | VIDMEM_READSIDEEFFECT;
-#else
-   mmioFlags = VIDMEM_MMIO | VIDMEM_READSIDEEFFECT | VIDMEM_SPARSE;
-#endif
-
-
-   pAST->MMIOVirtualAddr = xf86MapPciMem(pScrn->scrnIndex, mmioFlags,
-				         pAST->PciTag,
-				         pAST->MMIOPhysAddr, pAST->MMIOMapSize);
-
-#else
    {
      void** result = (void**)&pAST->MMIOVirtualAddr;
      int err = pci_device_map_range(pAST->PciInfo,
@@ -126,7 +101,6 @@ ASTMapMMIO(ScrnInfoPtr pScrn)
 			return FALSE;
    }
 
-#endif
    if (!pAST->MMIOVirtualAddr)
       return FALSE;
 
@@ -137,15 +111,6 @@ void
 ASTUnmapMMIO(ScrnInfoPtr pScrn)
 {
    ASTRecPtr pAST = ASTPTR(pScrn);
-
-#ifndef XSERVER_LIBPCIACCESS
-   xf86UnMapVidMem(pScrn->scrnIndex, (pointer) pAST->MMIOVirtualAddr,
-		   pAST->MMIOMapSize);
-#else
    pci_device_unmap_range(pAST->PciInfo, pAST->MMIOVirtualAddr, pAST->MMIOMapSize);
-#endif
    pAST->MMIOVirtualAddr = 0;
-
 }
- 
-

@@ -224,16 +224,6 @@ ASTProbe(DriverPtr drv, int flags)
       return FALSE;
     }
 
-#ifndef XSERVER_LIBPCIACCESS
-   /*
-    * This probing is just checking the PCI data the server already
-    * collected.
-    */
-    if (xf86GetPciVideoInfo() == NULL) {
-	return FALSE;
-    }
-#endif
-
     numUsed = xf86MatchPciInstances(AST_NAME, PCI_VENDOR_AST,
 				   ASTChipsets, ASTPciChipsets,
 				   devSections, numDevSections,
@@ -251,7 +241,6 @@ ASTProbe(DriverPtr drv, int flags)
         for (i = 0; i < numUsed; i++) {
 	    ScrnInfoPtr pScrn = NULL;
 
-#ifdef XSERVER_LIBPCIACCESS
             {
                 struct pci_device *pPci = xf86GetPciInfoForEntity(usedChips[i]);
 
@@ -266,7 +255,6 @@ ASTProbe(DriverPtr drv, int flags)
                     return FALSE;
                 }
             }
-#endif
 
 	    /* Allocate new ScrnInfoRec and claim the slot */
 	    if ((pScrn = xf86ConfigPciEntity(pScrn, 0, usedChips[i],
@@ -378,11 +366,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    if (pEnt->location.type != BUS_PCI)
        return FALSE;
 
-#ifndef XSERVER_LIBPCIACCESS
-   if (xf86RegisterResources(pEnt->index, 0, ResExclusive))
-       return FALSE;
-#endif
-
 #if	!(defined(__sparc__)) && !(defined(__mips__))
    /* The vgahw module should be loaded here when needed */
    if (!xf86LoadSubModule(pScrn, "vgahw"))
@@ -436,10 +419,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pScrn->progClock = TRUE;
    pScrn->rgbBits = 6;
    pScrn->monitor = pScrn->confScreen->monitor; /* should be initialized before set gamma */
-#ifndef XSERVER_LIBPCIACCESS
-   pScrn->racMemFlags = RAC_FB | RAC_COLORMAP | RAC_CURSOR | RAC_VIEWPORT;
-   pScrn->racIoFlags = RAC_COLORMAP | RAC_CURSOR | RAC_VIEWPORT;
-#endif
 
    /*
     * If the driver can do gamma correction, it should call xf86SetGamma()
@@ -473,10 +452,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
    pAST = ASTPTR(pScrn);
    pAST->pEnt    = xf86GetEntityInfo(pScrn->entityList[0]);
    pAST->PciInfo = xf86GetPciInfoForEntity(pAST->pEnt->index);
-#ifndef XSERVER_LIBPCIACCESS
-   pAST->PciTag  = pciTag(pAST->PciInfo->bus, pAST->PciInfo->device,
-			  pAST->PciInfo->func);
-#endif
 
    /* Process the options
     * pScrn->confScreen, pScrn->display, pScrn->monitor, pScrn->numEntities,
@@ -744,12 +719,6 @@ ASTPreInit(ScrnInfoPtr pScrn, int flags)
 	       }
        }
    }
-#endif
-
-#ifndef XSERVER_LIBPCIACCESS
-   /*  We won't be using the VGA access after the probe */
-   xf86SetOperatingState(resVgaIo, pAST->pEnt->index, ResUnusedOpr);
-   xf86SetOperatingState(resVgaMem, pAST->pEnt->index, ResDisableOpr);
 #endif
 
    return TRUE;
