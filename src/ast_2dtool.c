@@ -39,8 +39,6 @@
 /* framebuffer offscreen manager */
 #include "xf86fbman.h"
 
-#include "xaarop.h"
-
 /* H/W cursor support */
 #include "xf86Cursor.h"
 
