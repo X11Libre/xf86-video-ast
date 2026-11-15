@@ -50,7 +50,7 @@
 #include "ast_vgatool.h"
 #include "ast_dp501fw.h"
 
-__inline ULONG MIndwm(UCHAR *mmiobase, ULONG r)
+static __inline ULONG MIndwm(UCHAR *mmiobase, ULONG r)
 {
     ULONG ulData;
 
@@ -65,7 +65,7 @@ __inline ULONG MIndwm(UCHAR *mmiobase, ULONG r)
 
 }
 
-__inline void MOutdwm(UCHAR *mmiobase, ULONG r, ULONG v)
+static __inline void MOutdwm(UCHAR *mmiobase, ULONG r, ULONG v)
 {
     ULONG ulData;
 
