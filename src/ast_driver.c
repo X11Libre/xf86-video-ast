@@ -156,6 +156,10 @@ static XF86ModuleVersionInfo astVersRec = {
 
 _X_EXPORT XF86ModuleData astModuleData = { &astVersRec, astSetup, NULL };
 
+#ifdef XF86_MODULE_VERSION_SUFFIX
+XF86_MODULE_VERSION_SUFFIX(ast, AST_VERSION_SUFFIX);
+#endif
+
 static void*
 astSetup(void *module, void *opts, int *errmaj, int *errmin)
 {
